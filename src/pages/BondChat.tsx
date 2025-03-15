@@ -1,22 +1,45 @@
 import { useState, useEffect, useRef } from "react";
 import { Message } from "@/types/chat";
-import { ArrowLeft, History } from "lucide-react";
+import { ArrowLeft, History, Plus } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { ChatInput } from "@/components/chat/ChatInput";
-import { ChatMessage } from "@/components/chat/ChatMessage";
 import { useSocket } from "@/context/SocketContext";
 import { useApiCall } from "@/apis/globalCatchError";
 import { getMessages } from "@/apis/commonApiCalls/chatApi";
 import { toast } from "sonner";
+import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
+import { Badge } from "@/components/ui/badge";
+import { Link } from "react-router-dom";
+
+// Extend the Message type to support complex content
+interface ExtendedMessage extends Omit<Message, "text"> {
+  text: string | MessageContent;
+}
+
+interface UserRecommendation {
+  _id: string;
+  name: string;
+  nickName: string;
+  profilePic: string;
+  interests: string[];
+  matchingInterestsCount: number;
+  hasMessageInterest: boolean;
+}
+
+interface MessageContent {
+  message: string;
+  users?: UserRecommendation[];
+}
 
 interface MessageResponse {
   _id?: string;
-  content: string;
+  content: string | MessageContent;
   senderId: string;
   timestamp?: number;
   chatId?: string;
   senderName?: string;
   senderAvatar?: string;
+  isBot?: boolean;
 }
 
 interface SendMessageResponse {
@@ -29,8 +52,100 @@ interface SendMessageResponse {
   };
 }
 
+// Custom component for user recommendation cards
+const UserCard = ({ user }: { user: UserRecommendation }) => {
+  // Display up to 3 interests with a "+n more" indicator if needed
+  const displayedInterests = user.interests.slice(0, 3);
+  const remainingCount = Math.max(0, user.interests.length - 3);
+
+  return (
+    <Link to={`/profile/${user._id}`} className="block">
+      <div className="flex items-start border-2 border-primary/25 gap-3 p-4 bg-muted/50 rounded-lg mb-2 hover:bg-muted transition-colors">
+        <Avatar className="h-12 w-12">
+          <AvatarImage src={user.profilePic} alt={user.name} />
+          <AvatarFallback>{user.name[0]}</AvatarFallback>
+        </Avatar>
+        <div className="flex-1">
+          <span className="font-medium">{user.name}</span>
+          <div className="flex flex-wrap gap-1 mt-1">
+            {displayedInterests.map((interest, index) => (
+                <Badge variant="outline" className="text-xs border-primary">
+                  {interest}
+                </Badge>
+            ))}
+            {remainingCount > 0 && (
+              <Badge variant="outline" className="text-xs border-primary">
+                +{remainingCount} more
+              </Badge>
+            )}
+          </div>
+        </div>
+      </div>
+    </Link>
+  );
+};
+
+// Custom component for rendering bot messages with potential user recommendations
+const BotMessage = ({ message }: { message: ExtendedMessage }) => {
+  // Check if the message has content that includes user recommendations
+  const hasUserRecommendations =
+    typeof message.text === "object" &&
+    "users" in message.text &&
+    Array.isArray(message.text.users);
+
+  // Extract the message text and user recommendations if available
+  const messageText = hasUserRecommendations
+    ? (message.text as MessageContent).message
+    : typeof message.text === "string"
+    ? message.text
+    : "";
+
+  const users = hasUserRecommendations
+    ? (message.text as MessageContent).users || []
+    : [];
+
+  return (
+    <div className="flex items-start gap-2 mb-4">
+      <Avatar className="h-8 w-8">
+        <AvatarImage src="/bondchat.svg" alt="Bond Chat" />
+        <AvatarFallback>BC</AvatarFallback>
+      </Avatar>
+      <div className="flex-1">
+        <div className="bg-muted p-3 rounded-lg text-foreground rounded-tl-none">
+          <p>{messageText}</p>
+          <span className="text-xs opacity-70 block text-right mt-1">
+            {message.timestamp}
+          </span>
+        </div>
+
+        {users.length > 0 && (
+          <div className="mt-2">
+            {users.map((user, index) => (
+              <UserCard key={index} user={user} />
+            ))}
+          </div>
+        )}
+      </div>
+    </div>
+  );
+};
+
+// Custom component for user messages
+const UserMessage = ({ message }: { message: ExtendedMessage }) => {
+  return (
+    <div className="flex items-start gap-2 mb-4 flex-row-reverse">
+      <div className="bg-primary p-3 rounded-lg text-primary-foreground rounded-tr-none max-w-[70%]">
+        <p>{typeof message.text === "string" ? message.text : ""}</p>
+        <span className="text-xs opacity-70 block text-right mt-1">
+          {message.timestamp}
+        </span>
+      </div>
+    </div>
+  );
+};
+
 export default function BondChat() {
-  const [messages, setMessages] = useState<Message[]>([]);
+  const [messages, setMessages] = useState<ExtendedMessage[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [suggestions] = useState([
     "This is the for fast reply",
@@ -70,18 +185,35 @@ export default function BondChat() {
 
         if (result.success && result.data) {
           const messageHistory = result.data.messages
-            .map((msg) => ({
-              id: parseInt(msg._id) || Date.now(),
-              text: msg.content,
-              timestamp: new Date(msg.createdAt).toLocaleTimeString([], {
-                hour: "2-digit",
-                minute: "2-digit",
-              }),
-              isUser: msg.senderId === userId,
-              avatar:
-                msg.senderId === userId ? "/profile/user.png" : "/bondchat.svg",
-              username: msg.senderId === userId ? "You" : "Bond Chat",
-            }))
+            .map((msg) => {
+              // Try to parse content if it's a string that might be JSON
+              let parsedContent: string | MessageContent = msg.content;
+              if (typeof msg.content === "string") {
+                try {
+                  const possibleJson = JSON.parse(msg.content);
+                  if (possibleJson && typeof possibleJson === "object") {
+                    parsedContent = possibleJson as MessageContent;
+                  }
+                } catch {
+                  // Not JSON, keep as string
+                }
+              }
+
+              return {
+                id: parseInt(msg._id) || Date.now(),
+                text: parsedContent,
+                timestamp: new Date(msg.createdAt).toLocaleTimeString([], {
+                  hour: "2-digit",
+                  minute: "2-digit",
+                }),
+                isUser: msg.senderId === userId,
+                avatar:
+                  msg.senderId === userId
+                    ? "/profile/user.png"
+                    : "/bondchat.svg",
+                username: msg.senderId === userId ? "You" : "Bond Chat",
+              };
+            })
             .reverse(); // Reverse to show newest at the bottom
           setMessages(messageHistory);
         }
@@ -101,9 +233,25 @@ export default function BondChat() {
       // Skip if it's our own message (we'll add it optimistically)
       if (data.senderId === userId) return;
 
-      const newMsg: Message = {
+      // Handle different content types
+      let messageContent: string | MessageContent =
+        typeof data.content === "string" ? data.content : data.content;
+
+      // If content is a string but might be JSON, try to parse it
+      if (typeof data.content === "string") {
+        try {
+          const possibleJson = JSON.parse(data.content);
+          if (possibleJson && typeof possibleJson === "object") {
+            messageContent = possibleJson as MessageContent;
+          }
+        } catch {
+          // Not JSON, keep as string
+        }
+      }
+
+      const newMsg: ExtendedMessage = {
         id: data._id ? parseInt(data._id) : Date.now(),
-        text: data.content,
+        text: messageContent,
         timestamp: new Date(
           data.timestamp ? data.timestamp * 1000 : Date.now()
         ).toLocaleTimeString([], {
@@ -144,7 +292,7 @@ export default function BondChat() {
     };
 
     // Add message to local state immediately for better UX
-    const tempMessage: Message = {
+    const tempMessage: ExtendedMessage = {
       id: Date.now(),
       text,
       timestamp: new Date().toLocaleTimeString([], {
@@ -215,13 +363,13 @@ export default function BondChat() {
                 <p>Loading messages...</p>
               </div>
             ) : (
-              messages.map((message) => (
-                <ChatMessage
-                  key={message.id}
-                  message={message}
-                  showAvatar={false}
-                />
-              ))
+              messages.map((message) =>
+                message.isUser ? (
+                  <UserMessage key={message.id} message={message} />
+                ) : (
+                  <BotMessage key={message.id} message={message} />
+                )
+              )
             )}
             <div ref={messagesEndRef} />
           </div>
