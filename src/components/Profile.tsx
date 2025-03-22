@@ -2,7 +2,11 @@ import { useNavigate, Link } from "react-router-dom";
 import { Switch } from "@/components/ui/switch";
 import { ArrowLeft, Settings, Loader2 } from "lucide-react";
 import { Button } from "@/components/ui/button";
-import ThreeDotsMenu from "@/components/global/ThreeDotsMenu";
+import ThreeDotsMenu, { 
+  BlockMenuItem, 
+  ShareMenuItem, 
+  ReportMenuItem 
+} from "@/components/global/ThreeDotsMenu";
 import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/ui/tabs";
 import AllPosts from "@/components/AllPosts";
 import { useEffect, useState } from "react";
@@ -15,7 +19,7 @@ import type { UserPostsResponse } from "@/apis/apiTypes/profileTypes";
 import { useApiCall } from "@/apis/globalCatchError";
 import { toast } from "sonner";
 import { startMessage } from "@/apis/commonApiCalls/chatApi";
-import { fetchChatRooms } from "@/apis/commonApiCalls/activityApi";
+import { fetchChatRooms, blockUser as blockUserApi } from "@/apis/commonApiCalls/activityApi";
 import { useAppDispatch, useAppSelector } from "@/store";
 import { ChatRoom } from "@/apis/apiTypes/response";
 import {
@@ -31,6 +35,7 @@ interface ProfileProps {
   userId: string;
   username: string;
   email: string;
+  bio?: string;
   followers: number;
   following: number;
   avatarSrc: string;
@@ -45,6 +50,7 @@ const Profile: React.FC<ProfileProps> = ({
   userId,
   username,
   email,
+  bio = "",
   followers,
   following,
   avatarSrc,
@@ -66,6 +72,7 @@ const Profile: React.FC<ProfileProps> = ({
   const [executeStartMessage] = useApiCall(startMessage);
   const [executeFetchChats] = useApiCall(fetchChatRooms);
   const [executeUpdateProfile] = useApiCall(updateUserProfile);
+  const [executeBlockUser] = useApiCall(blockUserApi);
   // const [executeGetStoryForUser] = useApiCall(getStoryForUser);
 
   // Get user data from Redux store
@@ -151,6 +158,7 @@ const Profile: React.FC<ProfileProps> = ({
     const profileData = {
       name: username,
       email,
+      bio,
       interests: interests,
       privacyLevel: newPrivacyLevel,
       avatar: avatarSrc,
@@ -227,6 +235,29 @@ const Profile: React.FC<ProfileProps> = ({
     }
   };
 
+  const handleBlockUser = async () => {
+    await executeBlockUser(userId);   
+    toast.success(`${username} has been blocked`);
+    navigate('/');
+    dispatch(setActiveChat(null));
+  };
+
+  // Prepare menu items for other profile -> block, share, report
+  const menuItems = [
+    {
+      ...BlockMenuItem,
+      onClick: handleBlockUser
+    },
+    {
+      ...ShareMenuItem,
+      onClick: () => console.log('Share clicked')
+    },
+    {
+      ...ReportMenuItem,
+      onClick: () => console.log('Report clicked')
+    }
+  ];
+
   return (
     <div className="mx-auto bg-background">
       {/* Header */}
@@ -243,15 +274,7 @@ const Profile: React.FC<ProfileProps> = ({
             />
           </div>
         ) : (
-          <ThreeDotsMenu
-            showDelete={false}
-            onShare={() => {
-              /* handle share */
-            }}
-            onReport={() => {
-              /* handle report */
-            }}
-          />
+          <ThreeDotsMenu items={menuItems} />
         )}
       </div>
 
@@ -297,7 +320,13 @@ const Profile: React.FC<ProfileProps> = ({
               : username
             : username}
         </h1>
-        <p className="text-muted-foreground text-sm space-y-4">{email}</p>
+        <p className="text-muted-foreground text-sm max-w-[80%] text-center mx-auto">
+          {bio && bio.trim() !== "" 
+            ? bio 
+            : isCurrentUser 
+              ? "Add a bio in your profile settings" 
+              : "No bio available"}
+        </p>
 
         <div className="flex gap-8 py-3 mt-4">
           {isCurrentUser ? (

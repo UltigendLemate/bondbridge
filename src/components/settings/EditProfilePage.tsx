@@ -14,6 +14,7 @@ import { updateUserProfile } from '@/apis/commonApiCalls/profileApi';
 import { fetchAvatars } from '@/apis/commonApiCalls/createProfileApi';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { AVAILABLE_INTERESTS } from '@/lib/constants';
+import { Textarea } from "@/components/ui/textarea";
 
 interface AvatarData {
   url: string;
@@ -22,13 +23,15 @@ interface AvatarData {
 
 const EditProfilePage: React.FC = () => {
   const dispatch = useAppDispatch();
-  const { username, email, avatar, interests, privacyLevel } = useAppSelector(
+  const { username, email, avatar, interests, privacyLevel, bio } = useAppSelector(
     (state) => state.currentUser
   );
 
   const [formData, setFormData] = useState({
     username,
     email,
+    interests,
+    bio: bio || '',
   });
 
   const [selectedAvatar, setSelectedAvatar] = useState(avatar);
@@ -77,7 +80,9 @@ const EditProfilePage: React.FC = () => {
     getAvatars();
   }, []);
   
-  const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+  const handleInputChange = (
+    e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>
+  ) => {
     const { name, value } = e.target;
     setFormData({
       ...formData,
@@ -113,7 +118,8 @@ const EditProfilePage: React.FC = () => {
       email: formData.email,
       interests: selectedInterests,
       privacyLevel: privacyLevel ?? 0,
-      avatar: selectedAvatar
+      avatar: selectedAvatar,
+      bio: formData.bio
     };
     
     const { data, success } = await executeUpdateProfile(profileData);
@@ -126,6 +132,7 @@ const EditProfilePage: React.FC = () => {
           username: formData.username,
           email: formData.email,
           avatar: selectedAvatar,
+          bio: formData.bio
         })
       );
       dispatch(updateInterests(selectedInterests));
@@ -255,6 +262,18 @@ const EditProfilePage: React.FC = () => {
               type="email"
               value={formData.email}
               onChange={handleInputChange}
+            />
+          </div>
+
+          <div className="space-y-2">
+            <Label htmlFor="bio">Bio</Label>
+            <Textarea
+              id="bio"
+              name="bio"
+              value={formData.bio}
+              onChange={handleInputChange}
+              placeholder="Tell us about yourself..."
+              className="min-h-[100px]"
             />
           </div>
         </div>

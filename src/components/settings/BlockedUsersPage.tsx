@@ -1,54 +1,96 @@
 import React, { useState, useEffect } from "react";
-import { useAppSelector, useAppDispatch } from "@/store";
-import {
-  blockUser,
-  setSettingsActive,
-  unblockUser,
-} from "@/store/settingsSlice";
+import { useAppDispatch } from "@/store";
+import { setSettingsActive } from "@/store/settingsSlice";
 import { Button } from "@/components/ui/button";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
-import { UserX, UserPlus, ArrowLeft } from "lucide-react";
+import { UserX, UserPlus, ArrowLeft, Loader2 } from "lucide-react";
 import UserSearchDialog from "@/components/common/UserSearchDialog";
 import { Person } from "@/apis/commonApiCalls/searchApi";
-
-// Mock user data for search
-// const MOCK_USERS = [
-//   { id: "user3", name: "Alex Johnson", avatar: "/profile/avatars/3.png" },
-//   { id: "user4", name: "Sam Wilson", avatar: "/profile/avatars/4.png" },
-//   { id: "user5", name: "Taylor Swift", avatar: "/profile/avatars/5.png" },
-//   { id: "user6", name: "Jordan Peterson", avatar: "/profile/avatars/6.png" },
-//   { id: "user7", name: "Morgan Freeman", avatar: "/profile/avatars/1.png" },
-//   { id: "user8", name: "Emma Watson", avatar: "/profile/avatars/2.png" },
-// ];
+import { 
+  unblockUser as unblockUserApi, 
+  blockUser as blockUserApi,
+  getBlockedUsers,
+  BlockedUser
+} from "@/apis/commonApiCalls/activityApi";
+import { useApiCall } from "@/apis/globalCatchError";
+import { toast } from "sonner";
 
 const BlockedUsersPage: React.FC = () => {
   const dispatch = useAppDispatch();
-  const { blockedUsers } = useAppSelector((state) => state.settings);
-
+  const [blockedUsers, setBlockedUsers] = useState<BlockedUser[]>([]);
+  const [isLoading, setIsLoading] = useState(true);
   const [dialogOpen, setDialogOpen] = useState(false);
+  const [unblockingUser, setUnblockingUser] = useState<string | null>(null);
+  
+  const [executeUnblockUser] = useApiCall(unblockUserApi);
+  const [executeBlockUser] = useApiCall(blockUserApi);
+  const [executeGetBlockedUsers] = useApiCall(getBlockedUsers);
 
-  // Log blocked users whenever they change
-  useEffect(() => {
-    console.log("Current blocked users:", blockedUsers);
-  }, [blockedUsers]);
-
-  const handleUnblock = (userId: string) => {
-    console.log("Unblocking user:", userId);
-    dispatch(unblockUser(userId));
+  // Fetch blocked users from API
+  const fetchBlockedUsers = async () => {
+    setIsLoading(true);
+    const result = await executeGetBlockedUsers();
+    console.log("Blocked users from API:", result);
+    if (result.success && result.data) {
+      setBlockedUsers(result.data.blockedUsers);
+    }
+    setIsLoading(false);
   };
 
-  const handleBlock = (user: Person) => {
+  // Fetch blocked users on component mount
+  useEffect(() => {
+    fetchBlockedUsers();
+  }, []);
+
+  const handleUnblock = async (userId: string) => {
+    console.log("Unblocking user:", userId);
+    setUnblockingUser(userId);
+    
+    // Call the API to unblock the user
+    const result = await executeUnblockUser(userId);
+    console.log("Unblock API result:", result);
+    
+    if (result.success) {
+      // Update local state by filtering out the unblocked user
+      setBlockedUsers(prevUsers => prevUsers.filter(user => user.userId !== userId));
+      toast.success("User unblocked successfully");
+    } else {
+      toast.error("Failed to unblock user");
+    }
+    
+    setUnblockingUser(null);
+  };
+
+  const handleBlock = async (user: Person) => {
     console.log("Attempting to block user:", user);
     
-    const userToBlock = {
-      id: user.id,
-      name: user.name,
-      avatar: user.avatar
-    };
-    console.log("Dispatching block action with user:", userToBlock);
+    // Call the API to block the user
+    const result = await executeBlockUser(user.id);
+    console.log("Block API result:", result);
     
-    dispatch(blockUser(userToBlock));
+    if (result.success) {
+      // Refresh the list of blocked users after blocking
+      fetchBlockedUsers();
+      toast.success(`${user.name} has been blocked successfully`);
+    } else {
+      toast.error(`Failed to block ${user.name}`);
+    }
+    
     setDialogOpen(false);
+  };
+
+  // Check if a user is already blocked
+  const isUserBlocked = (userId: string) => {
+    return blockedUsers.some(user => user.userId === userId);
+  };
+  
+  // Handle user selection in dialog
+  const handleUserSelection = async (user: Person) => {
+    if (isUserBlocked(user.id)) {
+      await handleUnblock(user.id);
+    } else {
+      await handleBlock(user);
+    }
   };
 
   const handleCloseSettings = () => {
@@ -69,7 +111,7 @@ const BlockedUsersPage: React.FC = () => {
         <UserSearchDialog
           isOpen={dialogOpen}
           onOpenChange={setDialogOpen}
-          onSelectUser={handleBlock}
+          onSelectUser={handleUserSelection}
           triggerButton={
             <Button variant="outline" size="sm">
               <UserPlus className="h-4 w-4 mr-2" />
@@ -79,19 +121,24 @@ const BlockedUsersPage: React.FC = () => {
           title="Block a User"
           description="Search for a user to block. Blocked users won't be able to message you or see your content."
           actionIcon={<UserX className="h-4 w-4" />}
+          actionLabel="Block"
         />
       </div>
 
-      {blockedUsers.length > 0 ? (
+      {isLoading ? (
+        <div className="flex justify-center items-center py-10">
+          <Loader2 className="h-8 w-8 animate-spin text-primary" />
+        </div>
+      ) : blockedUsers.length > 0 ? (
         <div className="space-y-2">
           {blockedUsers.map((user) => (
             <div
-              key={user.id}
+              key={user.userId}
               className="flex items-center justify-between p-3 border border-border rounded-md"
             >
               <div className="flex items-center gap-3">
                 <Avatar className="h-10 w-10">
-                  <AvatarImage src={user.avatar} alt={user.name} />
+                  <AvatarImage src={user.profilePic} alt={user.name} />
                   <AvatarFallback>
                     {user.name.substring(0, 2).toUpperCase()}
                   </AvatarFallback>
@@ -104,8 +151,12 @@ const BlockedUsersPage: React.FC = () => {
               <Button
                 variant="ghost"
                 size="sm"
-                onClick={() => handleUnblock(user.id)}
+                onClick={() => handleUnblock(user.userId)}
+                disabled={unblockingUser === user.userId}
               >
+                {unblockingUser === user.userId ? (
+                  <Loader2 className="h-4 w-4 animate-spin mr-2" />
+                ) : null}
                 Unblock
               </Button>
             </div>

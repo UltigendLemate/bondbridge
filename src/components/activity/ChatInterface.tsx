@@ -15,7 +15,15 @@ import { useApiCall } from "@/apis/globalCatchError";
 import { getMessages, getRandomText } from "@/apis/commonApiCalls/chatApi";
 import { useAppDispatch, useAppSelector } from "@/store";
 import { useState } from "react";
+import ThreeDotsMenu, { 
+  BlockMenuItem,
+  ReportMenuItem,
+  EditGroupMenuItem 
+} from "@/components/global/ThreeDotsMenu";
+import { toast } from "sonner";
+import { blockUser as blockUserApi } from "@/apis/commonApiCalls/activityApi";
 import { Link, useNavigate } from "react-router-dom";
+import { EditGroupModal } from "./EditGroupModal";
 import { Skeleton } from "@/components/ui/skeleton";
 
 // Define types for socket responses
@@ -68,6 +76,8 @@ const ChatInterface: React.FC<ChatInterfaceProps> = ({
   const [executeGetMessages] = useApiCall(getMessages);
   const [executeGetRandomText] = useApiCall(getRandomText);
   const navigate = useNavigate();
+  const [executeBlockUser] = useApiCall(blockUserApi);
+  const [isEditGroupModalOpen, setIsEditGroupModalOpen] = useState(false);
 
   const dispatch = useAppDispatch();
   const {
@@ -326,6 +336,47 @@ const ChatInterface: React.FC<ChatInterfaceProps> = ({
     }
   };
 
+  const handleBlock = async () => {
+    if (chat?.type === "dm") {
+      const otherParticipant = chat.participants.find(p => p.userId !== userId);
+      if (otherParticipant) {
+        await executeBlockUser(otherParticipant.userId);
+        toast.success(`${otherParticipant.name} has been blocked`);
+        onClose(); 
+      }
+    }
+  };
+
+  const handleEditGroup = () => {
+    setIsEditGroupModalOpen(true);
+  };
+
+  const handleGroupUpdated = () => {
+    // Refresh chat data or update local state as needed
+    // This will be called after successful group update
+  };
+
+  // Prepare menu items based on chat type
+  const menuItems = [];
+  
+  if (chat?.type === "dm") {
+    // For DM chats -> block
+    menuItems.push({
+      ...BlockMenuItem,
+      onClick: handleBlock
+    });
+  } else if (chat?.type === "group") {
+    // For group chats -> report, edit group
+    menuItems.push({
+      ...ReportMenuItem,
+      onClick: () => console.log('Report clicked')
+    });
+    menuItems.push({
+      ...EditGroupMenuItem,
+      onClick: handleEditGroup
+    });
+  }
+
   if (!chat) {
     return (
       <div className="flex justify-center items-center h-full">
@@ -353,9 +404,9 @@ const ChatInterface: React.FC<ChatInterfaceProps> = ({
     messages.length === 0 && !isLoadingMessages && suggestions.length > 0;
 
   return (
-    <div className="flex flex-col h-[90vh] overflow-auto ">
+    <div className="h-full flex flex-col bg-background border-l">
       {/* Chat header */}
-      <div className="flex items-center justify-between p-4 border-b border-border">
+      <div className="flex items-center justify-between p-4 border-b">
         <div className="flex items-center gap-3">
           <Button
             variant="ghost"
@@ -386,23 +437,7 @@ const ChatInterface: React.FC<ChatInterfaceProps> = ({
           </div>
         </div>
         <div className="flex items-center gap-2">
-          <Button variant="ghost" size="icon">
-            <svg
-              xmlns="http://www.w3.org/2000/svg"
-              width="20"
-              height="20"
-              viewBox="0 0 24 24"
-              fill="none"
-              stroke="currentColor"
-              strokeWidth="2"
-              strokeLinecap="round"
-              strokeLinejoin="round"
-            >
-              <circle cx="12" cy="12" r="1" />
-              <circle cx="19" cy="12" r="1" />
-              <circle cx="5" cy="12" r="1" />
-            </svg>
-          </Button>
+          <ThreeDotsMenu items={menuItems} />
         </div>
       </div>
 
@@ -567,6 +602,16 @@ const ChatInterface: React.FC<ChatInterfaceProps> = ({
           </Button>
         </div>
       </div>
+
+      <EditGroupModal
+        isOpen={isEditGroupModalOpen}
+        onClose={() => setIsEditGroupModalOpen(false)}
+        groupName={name}
+        bio={chat?.bio || ""}
+        image={avatar}
+        groupId={chatId}
+        onGroupUpdated={handleGroupUpdated}
+      />
     </div>
   );
 };

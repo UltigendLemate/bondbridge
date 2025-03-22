@@ -4,7 +4,10 @@ import { Avatar, AvatarImage, AvatarFallback } from "@/components/ui/avatar";
 import { Button } from "@/components/ui/button";
 import { Comment } from "@/components/Comment";
 import { Input } from "@/components/ui/input";
-import ThreeDotsMenu from "@/components/global/ThreeDotsMenu";
+import ThreeDotsMenu, { 
+  ShareMenuItem, 
+  ReportMenuItem 
+} from "@/components/global/ThreeDotsMenu";
 import { CommentsProps } from "@/types/home";
 
 export function Comments({
@@ -14,9 +17,22 @@ export function Comments({
   postLikes,
   postComments,
   postDate,
-  comments
+  comments,
+  postAuthorId
 }: CommentsProps) {
-  const [newComment, setNewComment] = useState("");
+  const [newComment, setNewMessage] = useState("");
+
+  // Prepare menu items for other post -> share, report
+  const menuItems = [
+    {
+      ...ShareMenuItem,
+      onClick: () => console.log('Share clicked')
+    },
+    {
+      ...ReportMenuItem,
+      onClick: () => console.log('Report clicked')
+    }
+  ];
 
   return (
     <div className="flex-1 flex flex-col ">
@@ -31,12 +47,7 @@ export function Comments({
               </Avatar>
               <span className="font-medium">{postAuthor}</span>
             </div>
-            <ThreeDotsMenu
-              showDelete={false}
-              onShare={() => console.log('Share clicked')}    
-              onReport={() => console.log('Report clicked')}
-              onDelete={() => console.log('Delete clicked')}
-            />
+            <ThreeDotsMenu items={menuItems} />
           </div>
           <p className="text-sm mb-3">{postCaption}</p>
           <div className="flex items-center justify-between text-sm text-muted-foreground">
@@ -63,7 +74,7 @@ export function Comments({
             <Input
               placeholder="Add Your Comment"
               value={newComment}
-              onChange={(e) => setNewComment(e.target.value)}
+              onChange={(e) => setNewMessage(e.target.value)}
               className="pr-12 rounded-full bg-muted"
             />
             <Button
@@ -85,7 +96,7 @@ export function Comments({
             key={comment.commentId}
             comment={comment}
             currentUserId={localStorage.getItem('userId') || undefined}
-            postAuthorId={postAuthor}
+            postAuthorId={postAuthorId}
             onCommentDeleted={(commentId) => {
               // This is just a UI component, so we don't handle actual deletion here
               console.log('Comment deleted:', commentId);

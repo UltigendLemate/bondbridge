@@ -319,47 +319,77 @@ export interface FollowRequest {
   profilePic: string;
 }
 
-interface ChatParticipant {
+// interface ChatParticipant {
+//   userId: string;
+//   status: string;
+//   createdAt: string;
+//   updatedAt: string;
+//   name: string;
+//   profilePic: string;
+// }
+
+// interface BaseChatRoom {
+//   _id: string;
+//   chatRoomId: string;
+//   participants: ChatParticipant[];
+//   roomType: "dm" | "group" | "community";
+//   createdAt: string;
+//   updatedAt: string;
+//   isPart: boolean;
+//   unseenCount: number;
+//   lastMessage?:
+//     | {
+//         text: string;
+//       }
+//     | string;
+// }
+
+export interface ChatParticipantInfo {
   userId: string;
-  status: string;
-  createdAt: string;
-  updatedAt: string;
   name: string;
   profilePic: string;
 }
 
-interface BaseChatRoom {
+export interface Message {
   _id: string;
+  content: string;
+  senderId: string;
+  timestamp: number;
+  senderName?: string;
+  senderAvatar?: string;
+}
+
+export interface DMChatRoom {
   chatRoomId: string;
-  participants: ChatParticipant[];
-  roomType: "dm" | "group" | "community";
-  createdAt: string;
-  updatedAt: string;
-  isPart: boolean;
-  unseenCount: number;
-  lastMessage?:
-    | {
-        text: string;
-      }
-    | string;
-}
-
-interface DMChatRoom extends BaseChatRoom {
   roomType: "dm";
+  participants: ChatParticipantInfo[];
+  lastMessage?: Message;
+  unseenCount: number;
+  bio?: string;
 }
 
-interface GroupChatRoom extends BaseChatRoom {
+export interface GroupChatRoom {
+  chatRoomId: string;
   roomType: "group";
-  groupName: string;
-  profileUrl: string | null;
+  participants: ChatParticipantInfo[];
+  lastMessage?: Message;
+  unseenCount: number;
   admin: string;
+  bio?: string;
+  groupName?: string;
+  profileUrl?: string | null;
 }
 
-interface CommunityChatRoom extends BaseChatRoom {
+export interface CommunityChatRoom {
+  chatRoomId: string;
   roomType: "community";
-  groupName: string;
-  profileUrl: string | null;
+  participants: ChatParticipantInfo[];
+  lastMessage?: Message;
+  unseenCount: number;
   admin: string;
+  bio?: string;
+  groupName?: string;
+  profileUrl?: string | null;
 }
 
 export type ChatRoom = DMChatRoom | GroupChatRoom | CommunityChatRoom;
@@ -475,6 +505,7 @@ export interface UpdateProfileResponse {
     avatar: string;
     interests: string[];
     privacyLevel: number;
+    bio?: string;
   };
 }
 

@@ -81,6 +81,8 @@ const Settings = () => {
                 email: result.data.email,
                 avatar: result.data.avatarSrc,
                 privacyLevel: result.data.privacyLevel,
+                bio: result.data.bio,
+                interests: result.data.interests,
               })
             );
           }

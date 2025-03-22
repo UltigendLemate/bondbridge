@@ -11,7 +11,7 @@ import { toast } from "sonner";
 interface GroupInfo {
   name: string;
   description: string;
-  profileUrl?: string | null;
+  image?: string | null;
 }
 
 // interface GroupSkills {
@@ -76,7 +76,7 @@ const CreateGroup: React.FC = () => {
 
       if (result.success) {
         // If we have a description or image, make an edit-group API call
-        if (groupInfo.description || groupInfo.profileUrl) {
+        if (groupInfo.description || groupInfo.image) {
           try {
             // Get the chatRoomId from the nested chatRoom object in the response
             const chatRoomId = result.data?.chatRoom?.chatRoomId;
@@ -84,7 +84,7 @@ const CreateGroup: React.FC = () => {
               const editResult = await executeEditGroup({
                 groupId: chatRoomId,
                 bio: groupInfo.description,
-                profileUrl: groupInfo.profileUrl || undefined,
+                image: groupInfo.image || undefined,
               });
               
               console.log("Edit group result:", editResult);

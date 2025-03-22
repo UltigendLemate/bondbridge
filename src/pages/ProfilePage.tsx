@@ -36,7 +36,7 @@ const ProfilePage: React.FC = () => {
     };
 
     loadUserData();
-  }, [userId,currentUserId]);
+  }, [userId,currentUserId]); // Added currentUserId to dependency list
 
   if (isLoading) {
     return (
@@ -60,6 +60,7 @@ const ProfilePage: React.FC = () => {
         userId={userId}
         username={userData.username}
         email={userData.email}
+        bio={userData.bio}
         followers={userData.followers}
         following={userData.following}
         avatarSrc={userData.avatarSrc}

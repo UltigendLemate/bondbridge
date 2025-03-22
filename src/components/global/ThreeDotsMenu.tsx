@@ -5,35 +5,65 @@ import {
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
 import { Button } from "@/components/ui/button";
-import { MoreVertical, Share2, Flag, Trash } from "lucide-react";
+import { MoreHorizontal, Share2, Flag, Trash, UserX, Settings } from "lucide-react";
+import { ReactNode } from "react";
 
-interface ThreeDotsMenuProps {
-  showDelete?: boolean;
-  onShare?: () => void;
-  onReport?: () => void;
-  onDelete?: () => void;
+export interface MenuItemProps {
+  icon: ReactNode;
+  label: string;
+  onClick?: () => void;
+  className?: string;
 }
 
-export default function ThreeDotsMenu({ showDelete = true, onShare, onReport, onDelete }: ThreeDotsMenuProps) {
+export interface ThreeDotsMenuProps {
+  items: MenuItemProps[];
+}
+
+// Predefined menu items for common actions
+export const ShareMenuItem: MenuItemProps = {
+  icon: <Share2 className="w-4 h-4 mr-2" />,
+  label: "Share",
+};
+
+export const ReportMenuItem: MenuItemProps = {
+  icon: <Flag className="w-4 h-4 mr-2" />,
+  label: "Report",
+};
+
+export const BlockMenuItem: MenuItemProps = {
+  icon: <UserX className="w-4 h-4 mr-2" />,
+  label: "Block User",
+};
+
+export const DeleteMenuItem: MenuItemProps = {
+  icon: <Trash className="w-4 h-4 mr-2" />,
+  label: "Delete",
+  className: "text-destructive",
+};
+
+export const EditGroupMenuItem: MenuItemProps = {
+  icon: <Settings className="w-4 h-4 mr-2" />,
+  label: "Edit Group",
+};
+
+export default function ThreeDotsMenu({ items }: ThreeDotsMenuProps) {
   return (
     <DropdownMenu>
       <DropdownMenuTrigger asChild>
         <Button variant="ghost" size="icon">
-          <MoreVertical className="h-5 w-5" />
+          <MoreHorizontal className="h-5 w-5" />
         </Button>
       </DropdownMenuTrigger>
       <DropdownMenuContent align="end">
-        <DropdownMenuItem onClick={onShare} className="cursor-pointer">
-          <Share2 className="w-4 h-4 mr-2" /> Share
-        </DropdownMenuItem>
-        <DropdownMenuItem onClick={onReport} className="cursor-pointer">
-          <Flag className="w-4 h-4 mr-2" /> Report
-        </DropdownMenuItem>
-        {showDelete && (
-          <DropdownMenuItem onClick={onDelete} className="text-destructive cursor-pointer">
-            <Trash className="w-4 h-4 mr-2" /> Delete
+        {items.map((item, index) => (
+          <DropdownMenuItem 
+            key={`menu-item-${index}`}
+            onClick={item.onClick} 
+            className={`cursor-pointer ${item.className || ""}`}
+          >
+            {item.icon} {item.label}
           </DropdownMenuItem>
-        )}
+        ))}
       </DropdownMenuContent>
     </DropdownMenu>
   );

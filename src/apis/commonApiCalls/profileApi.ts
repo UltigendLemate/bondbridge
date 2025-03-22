@@ -30,6 +30,8 @@ export const fetchUserProfile = async (
       followers: userData.followers || 0,
       following: userData.followings || 0,
       avatarSrc: userData.avatar || userData.profilePic || "/profile/user.png",
+      bio: userData.bio || "",
+      interests: userData.interests || [],
       isCurrentUser,
       privacyLevel: userData.privacyLevel || 0,
       isFollowing: userData.isFollowing || false,
@@ -80,6 +82,11 @@ export const updateUserProfile = async (
   formDataObj.append("email", profileData.email);
   formDataObj.append("interests", JSON.stringify(profileData.interests));
   formDataObj.append("privacyLevel", profileData.privacyLevel.toString());
+  
+  // Append bio if it exists
+  if (profileData.bio !== undefined) {
+    formDataObj.append("bio", profileData.bio);
+  }
 
   // Handle avatar - could be a string URL or a File
   if (profileData.avatar) {

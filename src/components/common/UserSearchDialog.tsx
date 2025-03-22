@@ -43,6 +43,7 @@ const UserSearchDialog: React.FC<UserSearchDialogProps> = ({
   const [executeSearch, isSearching] = useApiCall(searchPeople);
   const [executeFetchFollowings, isLoadingFollowings] =
     useApiCall(fetchFollowings);
+  const [processingUsers, setProcessingUsers] = useState<Record<string, boolean>>({});
 
   useEffect(() => {
     const loadFollowings = async () => {
@@ -87,6 +88,21 @@ const UserSearchDialog: React.FC<UserSearchDialogProps> = ({
     onOpenChange(false);
   };
 
+  const handleUserAction = async (user: Person, e?: React.MouseEvent) => {
+    if (e) {
+      e.stopPropagation();
+    }
+    
+    // Set the user as processing
+    setProcessingUsers(prev => ({ ...prev, [user.id]: true }));
+    
+    // Call the parent component's onSelectUser callback
+    onSelectUser(user);
+    
+    // Reset processing state
+    setProcessingUsers(prev => ({ ...prev, [user.id]: false }));
+  };
+
   const displayUsers = searchQuery.trim() ? searchResults : followings;
 
   return (
@@ -118,7 +134,7 @@ const UserSearchDialog: React.FC<UserSearchDialogProps> = ({
               <div
                 key={user.id}
                 className="flex items-center justify-between p-2 hover:bg-accent rounded-md cursor-pointer"
-                onClick={() => onSelectUser(user)}
+                onClick={() => handleUserAction(user)}
               >
                 <div className="flex items-center gap-2">
                   <Avatar className="h-8 w-8">
@@ -139,12 +155,14 @@ const UserSearchDialog: React.FC<UserSearchDialogProps> = ({
                 <Button
                   variant="ghost"
                   size="sm"
-                  onClick={(e) => {
-                    e.stopPropagation();
-                    onSelectUser(user);
-                  }}
+                  onClick={(e) => handleUserAction(user, e)}
+                  disabled={processingUsers[user.id]}
                 >
-                  {actionIcon}
+                  {processingUsers[user.id] ? (
+                    <Loader2 className="h-4 w-4 animate-spin mr-2" />
+                  ) : (
+                    actionIcon
+                  )}
                   {actionLabel && <span className="ml-2">{actionLabel}</span>}
                 </Button>
               </div>

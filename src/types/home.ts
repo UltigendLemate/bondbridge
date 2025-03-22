@@ -8,6 +8,7 @@ export interface CommentsProps {
   postComments: number;
   postDate: string;
   comments: CommentData[];
+  postAuthorId?: string; // Add post author ID
 }
 
 export interface CommentProps {

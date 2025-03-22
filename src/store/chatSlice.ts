@@ -15,8 +15,13 @@ export interface ChatItem {
   timestamp: string;
   unread: boolean;
   type: "dm" | "group" | "community";
+  bio?: string;
   admin?: string;
-  participants: ChatParticipantInfo[]; // Store all participants
+  participants: {
+    userId: string;
+    name: string;
+    profilePic: string;
+  }[];
 }
 
 export interface Message {
@@ -161,26 +166,28 @@ const chatSlice = createSlice({
               name: otherParticipant?.name || "Unknown",
               avatar: otherParticipant?.profilePic || "",
               lastMessage: lastMessageText,
-              timestamp: new Date(chatRoom.updatedAt).toLocaleTimeString([], {
+              timestamp: new Date().toLocaleTimeString([], {
                 hour: "2-digit",
                 minute: "2-digit",
               }),
               unread: chatRoom.unseenCount > 0,
               type: "dm" as const,
+              bio: chatRoom.bio,
               participants,
             };
           } else {
             return {
               id: chatRoom.chatRoomId,
-              name: chatRoom.groupName,
+              name: chatRoom.groupName || "Group Chat",
               avatar: chatRoom.profileUrl || "",
               lastMessage: lastMessageText,
-              timestamp: new Date(chatRoom.updatedAt).toLocaleTimeString([], {
+              timestamp: new Date().toLocaleTimeString([], {
                 hour: "2-digit",
                 minute: "2-digit",
               }),
               unread: chatRoom.unseenCount > 0,
               type: chatRoom.roomType,
+              bio: chatRoom.bio,
               admin: chatRoom.admin,
               participants,
             };

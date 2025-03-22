@@ -14,6 +14,7 @@ const GroupList = ({ groups, isLoading, onSelectGroup }: GroupListProps) => {
   const handleGroupSelect = (group: ChatItem) => {
     dispatch(setActiveChat(group));
     onSelectGroup(group);
+    console.log("Group selected:", group);
   };
 
   if (isLoading) {

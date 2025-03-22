@@ -3,7 +3,10 @@ import { Avatar, AvatarImage, AvatarFallback } from "@/components/ui/avatar";
 import { Button } from "@/components/ui/button";
 import { Heart, MessageSquare, Reply, ArrowRight } from "lucide-react";
 import { Input } from "@/components/ui/input";
-import ThreeDotsMenu from "@/components/global/ThreeDotsMenu";
+import ThreeDotsMenu, { 
+  DeleteMenuItem, 
+  ReportMenuItem 
+} from "@/components/global/ThreeDotsMenu";
 import toast from 'react-hot-toast';
 import { useApiCall } from "@/apis/globalCatchError";
 import { CommentData } from "../apis/apiTypes/response";
@@ -44,7 +47,7 @@ export function Comment({ comment, isReply = false, postId, currentUserId, postA
   const isPostOwner = (currentUserId && postAuthorId && currentUserId === postAuthorId);
   
   // Show delete option if user is either comment owner or post owner
-  const canDelete = isCommentOwner || isPostOwner;
+  // const canDelete = isCommentOwner || isPostOwner;
   
   // Use the useApiCall hook for API calls
   const [executeDeleteComment] = useApiCall(deleteComment);
@@ -212,6 +215,35 @@ export function Comment({ comment, isReply = false, postId, currentUserId, postA
   // Early return for empty content
   if (!comment.comment) return null;
 
+  // Prepare menu items based on user roles
+  const menuItems = [];
+  
+  // For self comments -> delete
+  if (isCommentOwner) {
+    menuItems.push({
+      ...DeleteMenuItem,
+      onClick: handleDeleteComment
+    });
+  } 
+  // For other comments in my post -> delete, report
+  else if (isPostOwner) {
+    menuItems.push({
+      ...DeleteMenuItem,
+      onClick: handleDeleteComment
+    });
+    menuItems.push({
+      ...ReportMenuItem,
+      onClick: () => console.log('Report clicked')
+    });
+  } 
+  // For other comments in others' post -> report
+  else {
+    menuItems.push({
+      ...ReportMenuItem,
+      onClick: () => console.log('Report clicked')
+    });
+  }
+
   return (
     <div className={`p-4 ${isReply ? "pl-12" : ""} ${isCommentPending ? "opacity-70" : ""}`}>
       <div className="flex gap-2">
@@ -254,12 +286,7 @@ export function Comment({ comment, isReply = false, postId, currentUserId, postA
               </div>
             </div>
 
-            <ThreeDotsMenu
-              showDelete={!!canDelete}
-              onShare={() => console.log('Share clicked')}
-              onReport={() => console.log('Report clicked')}
-              onDelete={handleDeleteComment}
-            />
+            <ThreeDotsMenu items={menuItems} />
           </div>
 
           <div className="flex items-center gap-4 mt-2">
