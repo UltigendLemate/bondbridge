@@ -196,14 +196,14 @@ const Layout: React.FC<LayoutProps> = ({
                       </div>
                     </div>
 
-                    <div className="p-4 border-2 border-sidebar-border">
-                      <div className="max-h-[45vh] overflow-y-auto app-scrollbar">
+                    <div className="p-4 border-2 border-sidebar-border max-h-[38vh] overflow-y-auto app-scrollbar">
+                      <div>
                         <FollowingFollowers sidebar={true} />
                       </div>
                     </div>
 
                     <div className="p-6 border-2 overflow-y-auto max-h-[52vh] app-scrollbar">
-                      <h3 className="font-semibold text-lg mb-4 text-sidebar-foreground text-center">
+                      <h3 className="font-semibold  mb-4 text-sidebar-foreground text-center">
                         Suggested Friends
                       </h3>
                       {isLoadingSuggested ? (

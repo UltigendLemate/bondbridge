@@ -22,11 +22,11 @@ const SidebarAvatar: React.FC<SidebarAvatarProps> = ({
       className="flex items-center justify-between cursor-pointer hover:bg-accent/50 p-2 rounded-lg"
       onClick={handleClick}
     >
-      <div className="flex items-center space-x-3 text-lg">
+      <div className="flex items-center space-x-3">
         <img
           src={avatarSrc}
           alt={`${username}'s avatar`}
-          className="w-12 h-12 rounded-full object-cover"
+          className="w-8 h-8 rounded-full object-cover"
         />
         <p className="text-sidebar-foreground truncate">{username}</p>
       </div>

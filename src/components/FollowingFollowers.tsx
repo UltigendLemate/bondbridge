@@ -122,11 +122,11 @@ const FollowingFollowers = ({ sidebar = false }: FollowingFollowersProps) => {
               sidebar ? "p-2" : "p-4"
             )}>
               <div 
-                className="flex items-center gap-2 flex-1 cursor-pointer" 
+                className="flex items-center gap-2 flex-1 cursor-pointer overflow-hidden pr-2" 
                 onClick={() => handleUserClick(user._id)}
               >
                 <Avatar className={cn(
-                  "border-2 border-border/50",
+                  "border-2 border-border/50 flex-shrink-0",
                   sidebar ? "h-8 w-8" : "h-12 w-12"
                 )}>
                   <AvatarImage src={user.profilePic || user.avatar} alt={user.name} />
@@ -134,17 +134,16 @@ const FollowingFollowers = ({ sidebar = false }: FollowingFollowersProps) => {
                     {user.name[0]}
                   </AvatarFallback>
                 </Avatar>
-                <div className="flex flex-col min-w-0">
-                  <span className={cn(
-                    "font-medium text-foreground truncate",
-                    sidebar && "text-sm"
-                  )}>{sidebar ? user.name.length > 20 ? `${user.name.substring(0, 20)}...` : user.name : user.name}</span>
+                <div className="flex flex-col w-full overflow-hidden">
+                  <span className="font-medium text-foreground truncate w-full">
+                    {user.name}
+                  </span>
                   {!sidebar && (
                     <TruncatedText 
                       text={user.bio} 
                       limit={50}
                       className="text-sm text-muted-foreground" 
-                      buttonClassName="text-primary text-xs ml-1 cursor-pointer hover:underline"
+                      buttonClassName="text-primary ml-1 cursor-pointer hover:underline"
                       showToggle={false}
                     />
                   )}
@@ -160,7 +159,7 @@ const FollowingFollowers = ({ sidebar = false }: FollowingFollowersProps) => {
                 disabled={unfollowingUserId === user._id}
                 className={cn(
                   "justify-center cursor-pointer",
-                  sidebar ? "min-w-[60px] text-xs py-1 px-2 h-7" : "min-w-[80px]"
+                  sidebar ? "min-w-[60px] py-1 px-2 h-7" : "min-w-[80px]"
                 )}
               >
                 {unfollowingUserId === user._id ? (
@@ -201,11 +200,11 @@ const FollowingFollowers = ({ sidebar = false }: FollowingFollowersProps) => {
               sidebar ? "p-2" : "p-4"
             )}>
               <div 
-                className="flex items-center gap-2 flex-1 cursor-pointer" 
+                className="flex items-center gap-2 flex-1 cursor-pointer overflow-hidden pr-2" 
                 onClick={() => handleUserClick(user._id)}
               >
                 <Avatar className={cn(
-                  "border-2 border-border/50",
+                  "border-2 border-border/50 flex-shrink-0",
                   sidebar ? "h-8 w-8" : "h-12 w-12"
                 )}>
                   <AvatarImage src={user.profilePic || user.avatar} alt={user.name} />
@@ -213,11 +212,10 @@ const FollowingFollowers = ({ sidebar = false }: FollowingFollowersProps) => {
                     {user.name[0]}
                   </AvatarFallback>
                 </Avatar>
-                <div className="flex flex-col min-w-0">
-                  <span className={cn(
-                    "font-medium text-foreground truncate",
-                    sidebar && "text-sm"
-                  )}>{sidebar ? user.name.length > 20 ? `${user.name.substring(0, 20)}...` : user.name : user.name}</span>
+                <div className="flex flex-col w-full overflow-hidden">
+                  <span className="font-medium text-foreground truncate w-full">
+                    {user.name}
+                  </span>
                   {!sidebar && (
                     <TruncatedText 
                       text={user.bio} 
@@ -239,7 +237,7 @@ const FollowingFollowers = ({ sidebar = false }: FollowingFollowersProps) => {
                 disabled={removingFollowerId === user._id}
                 className={cn(
                   "justify-center cursor-pointer",
-                  sidebar ? "min-w-[60px] text-xs py-1 px-2 h-7" : "min-w-[80px]"
+                  sidebar ? "min-w-[60px] py-1 px-2 h-7" : "min-w-[80px]"
                 )}
               >
                 {removingFollowerId === user._id ? (
