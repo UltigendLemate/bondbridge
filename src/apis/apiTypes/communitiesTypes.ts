@@ -20,20 +20,41 @@ export interface Media {
   type: string; // "image" | "video"
 }
 
+// Define ReactionUserDetail based on the new JSON structure
+export interface ReactionUserDetail {
+  userId: string;
+  reactionType: string;
+  userDetails: UserDetails; // Reuse the UserDetails interface
+}
+
+export type ReactionResponse = { success: boolean; reactionDetails: ReactionDetails, 
+  reaction: {hasReacted: boolean, reactionType: string} }
+
 // Reaction types
 export interface ReactionDetails {
   total: number;
-  types: {
-    like: number;
-    love: number;
-    haha: number;
-    lulu: number;
+  reactions: ReactionUserDetail[]; // Array of specific reactions with user details
+  types: { // Added back: Counts of each reaction type
+    like?: number;
+    love?: number;
+    haha?: number;
+    lulu?: number;
+    [key: string]: number | undefined; // Allow other reaction types
   };
 }
 
 export interface Reaction {
   hasReacted: boolean;
   reactionType: string | null;
+}
+
+// Define UserDetails based on the provided JSON structure
+export interface UserDetails {
+  _id: string;
+  name: string;
+  profilePic: string;
+  avatar: string;
+  status: string; // e.g., "active", "offline"
 }
 
 // Community Response Types
@@ -64,11 +85,13 @@ export interface CommunityJoinRequest {
 export interface CommunityPostData {
   id: string;
   author: {
+    id: string;
     name: string;
     profilePic: string;
   };
   content: string;
   createdAt: number;
+  ago_time?: string;
   media: Media[];
   stats: {
     commentCount: number;
@@ -78,13 +101,16 @@ export interface CommunityPostData {
   };
   reactionDetails: ReactionDetails;
   isCommunity: boolean;
+  isAnonymous: boolean;
+  isAdmin: boolean;
   communityId: string;
 }
 
-// Define the structure for community post API response
+// Update CommunityPostResponse to use the refined ReactionDetails
 export interface CommunityPostResponse {
   _id: string;
   author: string;
+  communityId: string;
   whoCanComment: number;
   privacy: number;
   content_type: string | null;
@@ -102,12 +128,16 @@ export interface CommunityPostResponse {
   userId: string | null;
   ago_time: string;
   isCommunity: boolean;
+  isAnonymous: boolean;
+  isAdmin?: boolean;
   commentCount: number;
   reactionCount: number;
   reactionDetails: ReactionDetails;
   reaction: Reaction;
   name: string;
   profilePic: string;
+  comments?: CommentDetailsData[];
+  userDetails?: UserDetails;
 }
 
 // Interface for community posts API response
@@ -161,13 +191,15 @@ export interface ReactionUser {
   profilePic: string;
 }
 
-// TransformedCommunityPost type for consistent post data structure across components
+// Update TransformedCommunityPost to use the refined ReactionDetails
 export interface TransformedCommunityPost {
   id: string;
   author: {
+    id: string;
     name: string;
     profilePic: string;
   };
+  ago_time?: string;
   content: string;
   createdAt: number;
   media: Media[];
@@ -178,8 +210,9 @@ export interface TransformedCommunityPost {
     reactionType: string | null;
   };
   reactionDetails: ReactionDetails;
-  isCommunity: boolean;
   communityId: string;
+  isAnonymous?: boolean;
+  isAdmin?: boolean;
 }
 
 // Re-export ProfilePostData as CommunityPostDetail for semantic clarity

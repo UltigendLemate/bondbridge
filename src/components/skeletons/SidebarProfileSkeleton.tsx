@@ -28,7 +28,7 @@ export function SidebarPeopleSkeleton() {
       <Skeleton className="h-6 w-24 mb-6" />
       
       {/* People list skeletons */}
-      <div className="space-y-4">
+      <div className="space-y-2">
         {Array.from({ length: 5 }).map((_, index) => (
           <div key={index} className="flex items-center gap-3">
             <Skeleton className="h-10 w-10 rounded-full" />

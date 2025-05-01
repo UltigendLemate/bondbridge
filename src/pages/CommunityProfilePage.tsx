@@ -1,5 +1,5 @@
 import { useEffect, useState } from "react";
-import { useParams, useNavigate } from "react-router-dom";
+import { useParams, useNavigate, Link } from "react-router-dom";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
@@ -17,6 +17,8 @@ import { toast } from "sonner";
 import CommunityMemberList from "@/components/CommunityMemberList";
 import CommunityPosts from "@/components/CommunityPosts";
 import CommunityQuotes from "@/components/CommunityQuotes";
+// import { TruncatedList } from "@/components/ui/TruncatedList";
+import { TruncatedText } from "@/components/ui/TruncatedText";
 
 const CommunityProfilePage = () => {
   const { communityId } = useParams<{ communityId: string }>();
@@ -36,10 +38,10 @@ const CommunityProfilePage = () => {
   useEffect(() => {
     const loadCommunity = async () => {
       if (!communityId) return;
-      
+
       setLoading(true);
       const result = await executeFetchCommunityById(communityId);
-      
+
       if (result.success && result.data) {
         const communityData = result.data;
         setCommunity(communityData);
@@ -62,10 +64,10 @@ const CommunityProfilePage = () => {
   useEffect(() => {
     const loadCommunityPosts = async () => {
       if (!communityId) return;
-      
+
       setIsLoadingPosts(true);
       const result = await executeFetchCommunityPosts(communityId);
-      
+
       if (result.success && result.data) {
         setCommunityPosts(result.data);
       } else {
@@ -135,12 +137,12 @@ const CommunityProfilePage = () => {
   };
 
   // Filter posts for the Quotes tab (text-only posts)
-  const quotePosts = communityPosts.filter(post => 
+  const quotePosts = communityPosts.filter(post =>
     (!post.media || post.media.length === 0)
   );
-  
+
   // Filter posts for the Posts tab (posts with media)
-  const mediaPosts = communityPosts.filter(post => 
+  const mediaPosts = communityPosts.filter(post =>
     post.media && post.media.length > 0
   );
 
@@ -222,23 +224,55 @@ const CommunityProfilePage = () => {
           </Badge>
         </div>
 
-        <p className="text-foreground text-center mt-2 max-w-md">
-          {community.bio || ""}
-        </p>
+        <TruncatedText
+          text={community.description || ""}
+          limit={100}
+          placeholderText={"No bio available"}
+          className="text-foreground text-sm text-center mx-auto max-w-[35vw]"
+        />
 
-        <div className="flex gap-3 mt-6">
+        {/* {community.interest && (
+          <TruncatedList
+            items={community.interest.split(",")}
+            limit={5}
+            className="mt-3 w-full"
+            itemsContainerClassName="flex flex-wrap justify-center gap-2 max-w-[80%] mx-auto"
+            renderItem={(interest, index) => (
+              <span 
+                key={index} 
+                className="bg-muted font-semibold text-foreground border border-primary text-xs px-2 py-1 rounded-full"
+              >
+                {interest}
+              </span>
+            )}
+          />
+        )} */}
+
+        <div className="mt-6">
           {isUserMember ? (
-            <Button
-              variant="outline"
-              className="rounded-full text-foreground border-destructive cursor-pointer"
-              onClick={handleLeaveCommunity}
-              disabled={isMembershipLoading}
-            >
-              {isMembershipLoading ? (
-                <Loader2 className="h-4 w-4 mr-2 animate-spin" />
-              ) : null}
-              Leave
-            </Button>
+            <div className="flex gap-3">
+              <Link to={`/community/${communityId}/post`}>
+                <Button
+                  variant="default"
+                  className="rounded-full text-foreground border-destructive cursor-pointer"
+                  disabled={isMembershipLoading}
+                >
+                  + Post
+                </Button>
+              </Link>
+              <Button
+                variant="outline"
+                className="rounded-full text-foreground border-destructive cursor-pointer"
+                onClick={handleLeaveCommunity}
+                disabled={isMembershipLoading}
+              >
+                {isMembershipLoading ? (
+                  <Loader2 className="h-4 w-4 mr-2 animate-spin" />
+                ) : null}
+                Leave
+              </Button>
+
+            </div>
           ) : (
             <Button
               className="rounded-full cursor-pointer"
@@ -266,15 +300,15 @@ const CommunityProfilePage = () => {
       </div>
 
       <div className="flex-1 mt-8">
-        <Tabs defaultValue="about" className="w-full">
+        <Tabs defaultValue="feed" className="w-full">
           <TabsList className="grid w-full grid-cols-4 bg-background/30 rounded-lg backdrop-blur-sm mb-4 *:rounded-md *:m-1 *:data-[state=active]:bg-accent *:data-[state=active]:text-foreground *:text-muted-foreground">
-            <TabsTrigger value="about" className="cursor-pointer">About</TabsTrigger>
-            <TabsTrigger value="posts" className="cursor-pointer">Posts</TabsTrigger>
-            <TabsTrigger value="quotes" className="cursor-pointer">Quotes</TabsTrigger>
+            <TabsTrigger value="feed" className="cursor-pointer">News Feed</TabsTrigger>
+            <TabsTrigger value="posts" className="cursor-pointer">Recent</TabsTrigger>
+            <TabsTrigger value="quotes" className="cursor-pointer">Comments</TabsTrigger>
             <TabsTrigger value="members" className="cursor-pointer">Members</TabsTrigger>
           </TabsList>
 
-          <TabsContent value="about" className="p-4">
+          {/* <TabsContent value="about" className="p-4">
             <div className="bg-muted/50 rounded-lg p-4">
               <h3 className="font-semibold mb-2">Description</h3>
               <p className="text-muted-foreground">{community.description}</p>
@@ -289,6 +323,21 @@ const CommunityProfilePage = () => {
                 {new Date(community.createdAt).toLocaleDateString()}
               </p>
             </div>
+          </TabsContent> */}
+
+          <TabsContent value="feed" className="p-4">
+            {isLoadingPosts ? (
+              <div className="flex justify-center items-center min-h-[200px]">
+                <Loader2 className="h-8 w-8 animate-spin text-primary" />
+              </div>
+            ) : communityPosts.length > 0 ? (
+              <CommunityQuotes showMediaPosts={true} posts={communityPosts}
+                communityId={communityId || ''} />
+            ) : (
+              <div className="text-center py-8 text-muted-foreground">
+                No Posts
+              </div>
+            )}
           </TabsContent>
 
           <TabsContent value="posts" className="p-4">
@@ -311,7 +360,7 @@ const CommunityProfilePage = () => {
                 <Loader2 className="h-8 w-8 animate-spin text-primary" />
               </div>
             ) : quotePosts.length > 0 ? (
-              <CommunityQuotes posts={quotePosts} communityId={communityId || ''} />
+              <CommunityQuotes showMediaPosts={false} posts={quotePosts} communityId={communityId || ''} />
             ) : (
               <div className="text-center py-8 text-muted-foreground">
                 No Quotes

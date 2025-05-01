@@ -58,6 +58,16 @@ export const formDataApiClient = axios.create({
     "Access-Control-Allow-Origin": "*",
   },
 });
+// For multipart form data requests
+export const communityFormDataApiClient = axios.create({
+  baseURL: import.meta.env.VITE_API_ADMIN_BASE_URL || "/api",
+  timeout: 10000,
+  headers: {
+    "Content-Type": "multipart/form-data",
+    Accept: "application/json",
+    "Access-Control-Allow-Origin": "*",
+  },
+});
 
 // Add the same interceptor to formDataApiClient
 formDataApiClient.interceptors.request.use(
@@ -76,24 +86,6 @@ formDataApiClient.interceptors.request.use(
   }
 );
 
-// Add the same response interceptor to formDataApiClient
-// formDataApiClient.interceptors.response.use(
-//   (response) => {
-//     return response;
-//   },
-//   (error) => {
-//     // Check if the error is due to unauthorized access (401)
-//     if (error.response && (error.response.status === 401)) {
-//       // Clear all local storage
-//       localStorage.clear();
-
-//       // Redirect to login page
-//       window.location.href = '/login'; // Adjust the login route as needed
-//     }
-
-//     return Promise.reject(error);
-//   }
-// );
 
 // Admin API client for admin panel API calls
 export const adminApiClient = axios.create({
@@ -124,9 +116,42 @@ adminApiClient.interceptors.request.use(
     return Promise.reject(error);
   }
 );
+communityFormDataApiClient.interceptors.request.use(
+  (config) => {
+    // Get auth headers directly from the function
+    const authHeaders = GET_AUTH_HEADERS();
+
+    // Apply all auth headers to the request
+    if (config.headers) {
+      Object.assign(config.headers, authHeaders);
+    }
+
+    return config;
+  },
+  (error) => {
+    return Promise.reject(error);
+  }
+);
 
 // Response interceptor to handle authentication errors for admin API client
 adminApiClient.interceptors.response.use(
+  (response) => {
+    return response;
+  },
+  (error) => {
+    // Check if the error is due to unauthorized access (401)
+    if (error.response && error.response.status === 401) {
+      // Clear all local storage
+      localStorage.clear();
+
+      // Redirect to login page
+      window.location.href = "/login";
+    }
+
+    return Promise.reject(error);
+  }
+);
+communityFormDataApiClient.interceptors.response.use(
   (response) => {
     return response;
   },

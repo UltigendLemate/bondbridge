@@ -7,7 +7,8 @@ import {
   CommunityPostsResponse,
   FetchCommunitiesRequest,
   FetchCommunityPostsRequest,
-  TransformedCommunityPost
+  TransformedCommunityPost,
+  ReactionResponse 
 } from '../apiTypes/communitiesTypes';
 import { PostDetailsData } from '../apiTypes/response';
 
@@ -24,8 +25,9 @@ export const transformCommunityPost = (
   return {
     id: post._id,
     author: {
-      name: post.name,
-      profilePic: post.profilePic,
+      id: post.author || '',
+      name: post.name || '',
+      profilePic: post.profilePic || '',
     },
     content: post.data.content,
     createdAt: post.createdAt,
@@ -37,16 +39,18 @@ export const transformCommunityPost = (
       reactionType: post.reaction?.reactionType || null,
     },
     reactionDetails: {
-      total: post.reactionDetails.total || 0,
-      types: post.reactionDetails.types || {
+      total: post.reactionDetails?.total || 0,
+      reactions: post.reactionDetails?.reactions || [],
+      types: post.reactionDetails?.types || {
         like: 0,
         love: 0,
         haha: 0,
         lulu: 0
       }
     },
-    isCommunity: post.isCommunity,
-    communityId: communityId
+    communityId: communityId,
+    isAnonymous: post.isAnonymous,
+    isAdmin: post.isAdmin,
   };
 };
 
@@ -68,6 +72,9 @@ export const fetchCommunities = async (params?: FetchCommunitiesRequest): Promis
   const response = await adminApiClient.get<CommunitiesResponse>(url);
   return response.data.communities;
 };
+
+
+
 
 /**
  * Function to fetch communities where the current user is a member
@@ -171,7 +178,7 @@ export const fetchCommunityPosts = async (
       console.warn('API reported failure to fetch community posts');
       return [];
     }
-    
+    console.log(response.data.posts)
     // Transform posts to consistent format
     return (response.data.posts || []).map(post => transformCommunityPost(post, communityId));
   } catch (error) {
@@ -214,9 +221,10 @@ interface LikePostRequest {
 export const reactOnPost = async (
   communityId: string,
   params: LikePostRequest
-): Promise<PostDetailsData> => {
+): Promise<ReactionResponse> => {
   const url = `/communities/${communityId}/post/like`;
-  const response = await adminApiClient.post<{ success: boolean; post: PostDetailsData }>(url, {
+  console.log("url:",url, "params:",params)
+  const response = await adminApiClient.post<ReactionResponse>(url, {
     postId: params.postId,
     reactionType: params.reactionType
   });
@@ -224,7 +232,7 @@ export const reactOnPost = async (
   if (!response.data.success) {
     throw new Error('Failed to react post');
   }
-  return response.data.post;
+  return response.data;
 };
 
 /**
@@ -282,5 +290,19 @@ export const deleteComment = async (
   if (!response.data.success) {
     throw new Error('Failed to delete comment');
   }
+  return response.data;
+};
+
+
+/**
+ * Function to delete a post from a community
+ * @param communityId Community ID
+ * @param postId Post ID
+ * @returns Promise with delete post response
+ */
+export const deletePost = async (communityId: string, postId: string): Promise<{ success: boolean; message: string }> => {
+  const url = `/communities/${communityId}/post?postId=${postId}`;
+  const response = await adminApiClient.delete<{ success: boolean; message: string }>(url);
+  
   return response.data;
 };

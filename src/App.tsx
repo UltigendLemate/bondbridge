@@ -1,5 +1,5 @@
 import React from "react";
-import { BrowserRouter as Router, Route, Routes } from "react-router-dom";
+import { BrowserRouter as Router, Route, Routes} from "react-router-dom";
 import { Provider } from "react-redux";
 import { store } from "./store";
 import { SocketProvider } from "./context/SocketContext";
@@ -138,6 +138,14 @@ const AuthenticatedRoutes: React.FC = () => {
             element={
               <Layout showSidebars={true}>
                 <CreatePost />
+              </Layout>
+            }
+          />
+          <Route
+            path="/community/:communityId/post"
+            element={
+              <Layout showSidebars={true}>
+                <CreatePost communityPost={true} />
               </Layout>
             }
           />

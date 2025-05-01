@@ -28,6 +28,7 @@ export const GET_AUTH_HEADERS = () => ({
   token: localStorage.getItem("token") || "",
   userId: localStorage.getItem("userId") || "",
   deviceId: localStorage.getItem("deviceId") || "",
+  "ngrok-skip-browser-warning": "1",
 });
 
 export const AVAILABLE_INTERESTS = [

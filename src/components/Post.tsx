@@ -18,6 +18,7 @@ import {
 } from "@/components/ui/carousel";
 import { useApiCall } from "@/apis/globalCatchError";
 import { deletePost } from "@/apis/commonApiCalls/createPostApi";
+import { deletePost as deleteCommunityPost } from "@/apis/commonApiCalls/communitiesApi";
 import { toast } from "sonner";
 import { PostProps } from "@/types/post";
 import {
@@ -34,6 +35,7 @@ import { ReportModal } from './ReportModal';
 import ReactionComponent from "./global/ReactionComponent";
 import VideoObserver from "./common/VideoObserver";
 import { TruncatedText } from "@/components/ui/TruncatedText";
+import { getRelativeTime } from "@/lib/utils";
 
 export function Post({
     user,
@@ -43,12 +45,15 @@ export function Post({
     media = [],
     comments,
     datePosted,
+    agoTimeString = "",
     isOwner = false,
     onCommentClick,
     onLikeClick,
     feedId,
     onDelete,
-    isCommunity,
+    isCommunity=false,
+    isAnonymous=false,
+    isCommunityAdmin=false,
     communityId,
     initialReaction = { hasReacted: false, reactionType: null },
     initialReactionCount = 0,
@@ -62,7 +67,8 @@ export function Post({
     const videoRefs = useRef<Record<number, HTMLVideoElement>>({});
     const [isReportModalOpen, setIsReportModalOpen] = useState(false);
     const currentUserId = localStorage.getItem('userId') || '';
-    
+    const timestamp = datePosted ? datePosted : 0;
+    const timeAgo = getRelativeTime(new Date(timestamp).toISOString());
     // Use state to track reactions but initialize from props
     const [reactionCount, setReactionCount] = useState(initialReactionCount);
     const [reactionDetails, setReactionDetails] = useState(initialReactionDetails);
@@ -80,6 +86,7 @@ export function Post({
     };
 
     const [executeDeletePost] = useApiCall(deletePost);
+    const [executeDeleteCommunityPost] = useApiCall(deleteCommunityPost);
 
     // Determine if we should show a carousel or a single image
     const hasMultipleMedia = media && media.length > 1;
@@ -92,8 +99,13 @@ export function Post({
     const handleDeletePost = async () => {
         if (!feedId) return;
         setIsDeleteDialogOpen(false);
-        
-        const result = await executeDeletePost(feedId);
+        let result;
+        if (isCommunity) {
+            result = await executeDeleteCommunityPost(communityId ?? "", feedId);
+        }
+        else {
+            result = await executeDeletePost(feedId);
+        }
 
         if (result.success) {
             toast.success("Post deleted successfully");
@@ -184,23 +196,23 @@ export function Post({
 
     return (
         <>
-            <Card className="rounded-none border-x-0 border-t-0 shadow-none mb-4" data-post-id={feedId}>
+            <Card className="rounded-none border-x-0 border-t-0 shadow-none mb-4 " data-post-id={feedId}>
                 {/* Video observer component to handle autoplay/pause based on visibility */}
                 {feedId && <VideoObserver feedId={feedId} media={media} />}
                 
-                <div className="flex items-center justify-between p-4">
+                <div className="flex items-center justify-between p-4 pb-2">
                     <div
                         className="flex items-center gap-3 cursor-pointer"
                         onClick={handleProfileClick}
                     >
                         <Avatar>
-                            <AvatarImage src={avatar} alt={user} />
-                            <AvatarFallback>{user?.charAt(0)}</AvatarFallback>
+                            <AvatarImage src={isAnonymous ? "/profile/anonymous.png" : avatar} alt={isAnonymous ? "Anonymous" : user} />
+                            <AvatarFallback>{isAnonymous ? "A" : user?.charAt(0)}</AvatarFallback>
                         </Avatar>
                         <div>
                             <p className="font-semibold flex items-center gap-2">
-                                {user}
-                                {isCommunity && (
+                                {isAnonymous ? "Anonymous" : user}
+                                {isCommunityAdmin && (
                                     <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="3" strokeLinecap="round" strokeLinejoin="round" className="w-4 h-4 text-[#4f9dc7]">
                                         <path d="M9 12l2 2 4-4"></path>
                                         <circle cx="12" cy="12" r="10"></circle>
@@ -214,15 +226,15 @@ export function Post({
                 <CardContent className="p-4 pt-0">
                     <TruncatedText 
                         text={caption} 
-                        limit={200} 
+                        limit={400} 
                         showToggle={true} 
-                        className="text-card-foreground w-full" 
+                        className="text-card-foreground w-full mt-0" 
                         buttonClassName="text-foreground text-xs mt-1 cursor-pointer hover:underline font-bold"
                         align="left"
                     />
 
                     {hasMultipleMedia && media && (
-                        <div className="mt-4 rounded-lg overflow-hidden">
+                        <div className="mt-3 rounded-lg overflow-hidden">
                             <Carousel className="w-full">
                                 <CarouselContent>
                                     {media.map((item, index) => (
@@ -271,7 +283,7 @@ export function Post({
                     )}
                     
                     {!hasMultipleMedia && hasSingleMedia && (
-                        <div className="mt-4 rounded-lg overflow-hidden">
+                        <div className="mt-3 rounded-lg overflow-hidden">
                             {media && media.length > 0 && media[0].type === "image" && (
                                 <div className="max-h-[100vh] relative bg-background flex items-center justify-center">
                                     <img
@@ -337,7 +349,9 @@ export function Post({
                                 <Share2 className="w-5 h-5" />
                             </button>
                         </div>
-                        <div className="text-sm text-muted-foreground">{datePosted}</div>
+                        <div className="text-sm text-muted-foreground">
+                         {agoTimeString || timeAgo}
+                        </div>
                     </div>
                 </CardContent>
 

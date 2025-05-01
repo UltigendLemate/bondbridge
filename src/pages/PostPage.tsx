@@ -497,7 +497,8 @@ export default function CommentsPage() {
               communityId={post.communityId}
               media={post.data.media || []}
               comments={post.commentCount}
-              datePosted={post.ago_time}
+              agoTimeString={post.ago_time}
+              datePosted={post.createdAt}
               feedId={post.feedId}
               isOwner={currentUserId === post.userId}
               onCommentClick={() => {}}
@@ -513,7 +514,7 @@ export default function CommentsPage() {
           )}
 
           {/* Comment Input */}
-          <div className="p-4 border-b flex items-center gap-2">
+          <div className="p-4 pt-0 border-b flex items-center gap-2">
             <Avatar className="h-8 w-8">
               <AvatarImage
                 src={currentUser.profilePic || currentUser.avatar}

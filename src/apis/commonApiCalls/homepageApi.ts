@@ -144,6 +144,7 @@ export const getPostDetails = async (
     } else {
       throw new Error(response.data.message || "Failed to fetch post details");
     }
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
   } catch (error: any) {
     // Check if it's a 403 unauthorized access error
     if (error.response && error.response.status === 403) {

@@ -466,7 +466,7 @@ export default function CommunityPostPage() {
                 media={post.data.media || []}
                 initialReactionCount={post.reactionDetails.total}
                 comments={post.commentCount}
-                datePosted={post.ago_time}
+                datePosted={post.createdAt}
                 feedId={post.feedId}
                 isOwner={currentUserId === post.userId}
                 onCommentClick={() => {}}

@@ -216,7 +216,7 @@ const Layout: React.FC<LayoutProps> = ({
                           </p>
                         </div>
                       ) : (
-                        <ul className="space-y-3">
+                        <ul className="space-y-1">
                           {sidebarUsers.map((user) => (
                             <SidebarAvatar
                               key={user.id}

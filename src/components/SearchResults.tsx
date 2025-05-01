@@ -1,5 +1,5 @@
 import { Person } from "@/apis/apiTypes/response";
-import { Avatar } from "./ui/avatar";
+import { Avatar, AvatarFallback, AvatarImage } from "./ui/avatar";
 import { Button } from "./ui/button";
 import { useNavigate } from "react-router-dom";
 import { TruncatedText } from "./ui/TruncatedText";
@@ -22,11 +22,14 @@ const SearchResults = ({ person }: Props) => {
     >
       <div className="flex items-center gap-3">
         <Avatar className="h-12 w-12">
-          <img src={person.profilePic || person.avatar} alt={person.name} className="h-12 w-12 rounded-full"/>
+          <AvatarImage src={person.profilePic || person.avatar} alt={person.name} className="h-12 w-12 rounded-full object-cover"/>
+          <AvatarFallback className="bg-primary/5 text-primary font-medium">
+            {person.name[0]?.toUpperCase() || "U"}
+          </AvatarFallback>
         </Avatar>
         <div>
           <h3 className="font-medium">{person.name}</h3>
-          <TruncatedText 
+          <TruncatedText
             text={person.bio} 
             limit={65}
             className="text-sm text-muted-foreground"

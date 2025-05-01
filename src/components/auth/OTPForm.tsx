@@ -7,9 +7,9 @@ interface OTPFormProps {
   onResendOTP: () => void;
 }
 
-const OTPForm: React.FC<OTPFormProps> = ({ onVerify, receivedOTP, onResendOTP }) => {
+const OTPForm: React.FC<OTPFormProps> = ({ onVerify,  onResendOTP }) => {
   const [otp, setOtp] = useState('');
-  const [showOTP, setShowOTP] = useState(true);
+  const [, setShowOTP] = useState(true);
   const [canResend, setCanResend] = useState(false);
   const [countdown, setCountdown] = useState(60);
 
@@ -101,13 +101,13 @@ const OTPForm: React.FC<OTPFormProps> = ({ onVerify, receivedOTP, onResendOTP })
         </Button>
       </div>
       
-      <div className="flex justify-center absolute left-0 right-0 text-center mt-4" style={{ top: "calc(76%)" }}>
+      {/* <div className="flex justify-center absolute left-0 right-0 text-center mt-4" style={{ top: "calc(76%)" }}>
         {showOTP && (
           <p className="text-foreground font-bold border-1 px-4 border-primary rounded-full text-xl w-fit p-2">
             {`OTP : ${receivedOTP}`}
           </p>
         )}
-      </div>
+      </div> */}
     </div>
   );
 };

@@ -1,5 +1,5 @@
 import { useNavigate } from "react-router-dom";
-import { CommunityPostData } from "../apis/apiTypes/communitiesTypes";
+import {  TransformedCommunityPost } from "../apis/apiTypes/communitiesTypes";
 import { POST_IMAGE } from "../constants/posts";
 import VideoThumbnail from "./common/VideoThumbnail";
 
@@ -7,7 +7,7 @@ import VideoThumbnail from "./common/VideoThumbnail";
 const DEFAULT_POST_IMAGE = POST_IMAGE;
 
 interface CommunityPostsProps {
-  posts: CommunityPostData[];
+  posts: TransformedCommunityPost[];
   communityId: string;
 }
 

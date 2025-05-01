@@ -255,7 +255,7 @@ const FollowingFollowers = ({ sidebar = false }: FollowingFollowersProps) => {
 
   return (
     <div className={cn(
-      sidebar ? "mx-auto" : "container max-w-2xl mx-auto py-4 px-4"
+      sidebar ? "mx-auto w-full" : "container max-w-2xl mx-auto py-4 px-4"
     )}>
       {!sidebar && (
         <Button

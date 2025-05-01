@@ -194,6 +194,9 @@ export interface CreatePostRequest {
   privacy: number;
   image?: (File | VideoFileWithThumbnail)[];
   document?: File[];
+  isCommunityPost?: boolean;
+  communityId?: string;
+  isAnonymous?: boolean;
 }
 
 export interface ReactionRequest {

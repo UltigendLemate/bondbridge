@@ -1,4 +1,4 @@
-import apiClient, { formDataApiClient } from "../apiClient";
+import apiClient, { communityFormDataApiClient, formDataApiClient } from "../apiClient";
 import { CreatePostRequest } from "../apiTypes/request";
 import {
   CreatePostResponse,
@@ -15,12 +15,17 @@ export const createPost = async (
   postData: CreatePostRequest
 ): Promise<CreatePostResponse> => {
   const formData = new FormData();
+  formData.append("content", postData.content);
 
   // Append text data
-  formData.append("content", postData.content);
+  if (postData.isCommunityPost) {
+    formData.append("communityId", postData.communityId!);
+    formData.append("isAnonymous", postData.isAnonymous!.toString());
+  }
+  else{
   formData.append("whoCanComment", postData.whoCanComment.toString());
   formData.append("privacy", postData.privacy.toString());
-
+  }
   // Handle media files while maintaining sequence
   if (postData.image && postData.image.length > 0) {
     postData.image.forEach((file, index) => {
@@ -43,20 +48,20 @@ export const createPost = async (
     });
   }
 
-  // Append document files if any
-  if (postData.document && postData.document.length > 0) {
-    postData.document.forEach((file) => {
-      formData.append("document", file);
-    });
-  }
-
   // For debugging
   console.log("Sending post data:", Object.fromEntries(formData.entries()));
-
-  const response = await formDataApiClient.post<CreatePostResponse>(
-    "/post",
-    formData
-  );
+  let response;
+  if (postData.isCommunityPost) {
+    response = await communityFormDataApiClient.post<CreatePostResponse>(
+      `/communities/${postData.communityId}/post`,
+      formData
+    );
+  } else {
+    response = await formDataApiClient.post<CreatePostResponse>(
+      "/post",
+      formData
+    );
+  }
   return response.data;
 };
 

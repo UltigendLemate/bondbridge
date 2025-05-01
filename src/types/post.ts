@@ -22,10 +22,13 @@ export interface PostProps {
     image?: string; // Made optional since we now support media array
     media?: MediaItem[]; // New property for multiple media items
     comments: number;
-    datePosted: string;
+    datePosted: number;
+    agoTimeString?: string;
     isOwner?: boolean;
-    isCommunity?: boolean;
     communityId?: string;
+    isCommunity?: boolean;
+    isAnonymous?: boolean;
+    isCommunityAdmin?: boolean;
     onCommentClick?: () => void;
     onLikeClick?: () => void;
     feedId: string;

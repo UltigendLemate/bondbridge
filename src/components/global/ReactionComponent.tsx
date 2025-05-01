@@ -146,6 +146,7 @@ const ReactionComponent = ({
       if (isCommunity) {
         // For community posts, use the fetchPostDetails API
         const result = await executeFetchPostDetails(entityId);
+        console.log("result:",result, result.success, result.data)
         if (result.success && result.data) {
           const postData = result.data;
           
@@ -237,7 +238,7 @@ const ReactionComponent = ({
     } finally {
       setIsLoadingUsers(false);
     }
-  }, [entityId, entityType, executeGetAllReactions, executeFetchPostDetails, isCommunity, isLoadingUsers]);
+  }, [communityId]);
 
   // Update current reaction when initialReaction changes
   useEffect(() => {
@@ -366,13 +367,14 @@ const ReactionComponent = ({
         if (!communityId) {
           throw new Error("Community ID is required for community posts");
         }
+
+        console.log("communityId:",communityId, "entityId:",entityId, "reactionType:",reactionType)
         
         // The community API handles both add and remove reactions
         const result = await executeReactOnPost(communityId as string, {
           postId: entityId,
           reactionType: reactionType
         });
-        
         if (result.success && result.data) {
           // Process the response and update the state
           const postData = result.data;

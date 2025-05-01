@@ -501,7 +501,8 @@ export default function HomePage() {
                       : undefined
                   }
                   comments={post.commentCount}
-                  datePosted={post.ago_time}
+                  datePosted={post.createdAt}
+                  agoTimeString={post.ago_time}
                   isOwner={currentUserId === post.userId}
                   onCommentClick={() =>
                     handleCommentClick(post.feedId, processedPost)

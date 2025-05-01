@@ -1,5 +1,5 @@
 import { SearchHistoryUser } from "@/apis/apiTypes/searchHistory";
-import { Avatar } from "./ui/avatar";
+import { Avatar, AvatarFallback, AvatarImage } from "./ui/avatar";
 import { Button } from "./ui/button";
 import { X } from "lucide-react";
 import { useNavigate } from "react-router-dom";
@@ -42,7 +42,10 @@ export const SearchHistoryItem = ({ user, onRemove, onRevert }: SearchHistoryIte
     >
       <div className="flex items-center gap-3">
         <Avatar className="h-8 w-8">
-          <img src={user.profilePic} alt={user.name} className="h-8 w-8 rounded-full"/>
+          <AvatarImage src={user.profilePic} alt={user.name} className="h-8 w-8 rounded-full"/>
+          <AvatarFallback className="bg-primary/5 text-primary font-medium">
+            {user.name[0]?.toUpperCase() || "U"}
+          </AvatarFallback>
         </Avatar>
         <span className="font-medium text-sm">{user.name}</span>
       </div>
