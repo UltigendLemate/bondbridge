@@ -69,6 +69,7 @@ const Settings = () => {
               avatar: result.data.avatarSrc,
               privacyLevel: result.data.privacyLevel,
               bio: result.data.bio,
+              userId: result.data.userId,
               interests: result.data.interests,
               public: result.data.public,
             })
@@ -101,6 +102,7 @@ const Settings = () => {
                 bio: result.data.bio,
                 interests: result.data.interests,
                 public: result.data.public,
+                userId: result.data.userId,
               })
             );
           }

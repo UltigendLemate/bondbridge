@@ -238,6 +238,7 @@ const Profile: React.FC<ProfileProps> = ({
               avatar: result.data.avatarSrc,
               privacyLevel: result.data.privacyLevel,
               bio: result.data.bio,
+              userId: result.data.userId,
               interests: result.data.interests,
             })
           );

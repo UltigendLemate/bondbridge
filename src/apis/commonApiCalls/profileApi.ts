@@ -46,6 +46,7 @@ export const fetchUserProfile = async (
       isBlocked: userData.isBlocked,
       referralCode: userData.referralCode || "",
       referralCount: userData.referralData?.referralCount || 0,
+      userId: userData._id,
     },
   };
 };

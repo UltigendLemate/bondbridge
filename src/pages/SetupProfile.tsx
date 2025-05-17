@@ -6,12 +6,13 @@ import SelectAvatarTab from "@/components/profile/SelectAvatarTab";
 import CoverProfilePhotosTab from "@/components/profile/CoverProfilePhotosTab";
 import SelectCommunitiesTab from "@/components/profile/SelectCommunitiesTab";
 import TabPageLayout from "@/components/layouts/TabPageLayout";
-import { useAppSelector } from "../store";
+import { useAppDispatch, useAppSelector } from "../store";
 import { submitProfile } from "../apis/commonApiCalls/createProfileApi";
 import { setPassword } from "../apis/commonApiCalls/authenticationApi";
 import { joinMultipleCommunities } from "../apis/commonApiCalls/communitiesApi";
 import { useApiCall } from "../apis/globalCatchError";
 import { toast } from "sonner";
+import { updateCurrentUser } from "@/store/currentUserSlice";
 
 const tabs = [
   { id: "personal", label: "Personal Information" },
@@ -26,6 +27,7 @@ const VALIDATED_TABS = ["personal", "skills"];
 
 const SetupProfile: React.FC = () => {
   const location = useLocation();
+  const dispatch = useAppDispatch();
   const currentTab = location.hash.replace("#", "") || "personal";
   const navigate = useNavigate();
   
@@ -87,6 +89,13 @@ const SetupProfile: React.FC = () => {
 
   // Handle form submission
   const handleSubmit = async () => {
+    // Validate personal information
+    if (!name || !email || !dateOfBirth || !password) {
+      toast.error("Personal information has not been filled correctly.");
+      navigate("#personal"); // Navigate to the personal info tab
+      return;
+    }
+    
     //delete referral code from session storage
     sessionStorage.removeItem('referralCode');
 
@@ -104,7 +113,6 @@ const SetupProfile: React.FC = () => {
     });
     
     if (result.success && result.data) {
-      console.log(result.data);
       
       // Now set the password
       const passwordResult = await executeSetPassword({
@@ -125,6 +133,17 @@ const SetupProfile: React.FC = () => {
             console.error("Failed to join some communities");
           }
         }
+
+        dispatch(updateCurrentUser({
+          userId: result.data.userDetails._id,
+          username: result.data.userDetails.name,
+          nickname: result.data.userDetails.nickName,
+          email: result.data.userDetails.email,
+          avatar: result.data.userDetails.avatar,
+          profilePic: result.data.userDetails.profilePic,
+          bio: result.data.userDetails.bio,
+          interests: result.data.userDetails.interests,
+        }));
         
         // Navigate to home page regardless of community join status
         navigate('/');

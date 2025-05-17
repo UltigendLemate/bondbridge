@@ -73,7 +73,7 @@ export default function HomePage() {
               bio: result.data.data.bio,
               interests: result.data.data.interests,
               privacyLevel: result.data.data.privacyLevel,
-              userId: currentUserId,
+              userId: result.data.data.userId,
             })
           );
         }

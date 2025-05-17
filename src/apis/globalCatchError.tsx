@@ -67,7 +67,7 @@ export const handleApiError = (error: unknown): ApiError => {
 export const useApiCall = <T, Args extends unknown[]>(
   apiFunction: (...args: Args) => Promise<T>
 ): [
-  (...args: Args) => Promise<{ data: T | null; success: boolean; status?: number }>,
+  (...args: Args) => Promise<{ data: T | null; success: boolean; status?: number; message?: string }>,
   boolean
 ] => {
   const [isLoading, setIsLoading] = useState(false);
@@ -80,8 +80,8 @@ export const useApiCall = <T, Args extends unknown[]>(
       return { data: result, success: true };
     } catch (error: unknown) {
       handleApiError(error);
-      const errorWithStatus = error as { status?: number };
-      return { data: null, success: false, status: errorWithStatus.status };
+      const errorWithStatus = error as { status?: number, message?: string };
+      return { data: null, success: false, status: errorWithStatus.status, message: errorWithStatus.message };
     } finally {
       setIsLoading(false);
     }

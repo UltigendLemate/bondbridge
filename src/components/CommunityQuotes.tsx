@@ -39,7 +39,7 @@ const CommunityQuotes: React.FC<CommunityQuotesProps> = ({
 
   //we will change this to delete the post from the database
   const handlePostDeleted = (deletedPostId: string) => {
-    console.log("deletedPostId:",deletedPostId)
+    // console.log("deletedPostId:",deletedPostId)
     setLocalPosts(prevPosts => prevPosts.filter(p => p.id.toString() !== deletedPostId));
   };
 
