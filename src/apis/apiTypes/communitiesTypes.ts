@@ -70,8 +70,8 @@ export interface CommunityResponse {
   memberCount: number;
   postCount?: number;
   posts?: string[];
-  members?: string[];
-  memberDetails?: MemberDetail[];
+  // members?: string[];
+  // memberDetails?: MemberDetail[];
   isJoined?: boolean;
 }
 

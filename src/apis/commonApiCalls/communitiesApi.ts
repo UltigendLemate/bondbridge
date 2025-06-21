@@ -68,25 +68,9 @@ export const fetchCommunities = async (params?: FetchCommunitiesRequest): Promis
     queryParams.append('limit', params.limit.toString());
   }
   
-  const url = `/communities${queryParams.toString() ? `?${queryParams.toString()}` : ''}`;
+  const url = `/communityDetailsWithoutPostAndMembersData${queryParams.toString() ? `?${queryParams.toString()}` : ''}`;
   const response = await adminApiClient.get<CommunitiesResponse>(url);
   return response.data.communities;
-};
-
-/**
- * Function to fetch communities where the current user is a member
- * @returns Promise with community response array
- */
-export const fetchUserCommunities = async (): Promise<CommunityResponse[]> => {
-  const userId = localStorage.getItem('userId');
-  if (!userId) {
-    throw new Error('User not authenticated');
-  }
-  
-  const communities = await fetchCommunities();
-  
-  // Filter communities where isJoined is true
-  return communities.filter(community => community.isJoined);
 };
 
 /**

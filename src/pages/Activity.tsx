@@ -23,7 +23,6 @@ import UserSearchDialog from "@/components/common/UserSearchDialog";
 import LogoLoader from "@/components/LogoLoader";
 import { EmptyState } from "@/components/ui/empty-state";
 import { Person } from "@/apis/apiTypes/response";
-import { fetchUserCommunities } from "@/apis/commonApiCalls/communitiesApi";
 import { CommunityResponse } from "@/apis/apiTypes/communitiesTypes";
 import { fetchCommunities } from "@/apis/commonApiCalls/communitiesApi";
 
@@ -49,25 +48,21 @@ export default function Activity() {
   const [dialogOpen, setDialogOpen] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [userCommunities, setUserCommunities] = useState<ChatItem[]>([]);
-  const [loadingCommunities, setLoadingCommunities] = useState(false);
   const [activeTab, setActiveTab] = useState("chats");
   const [suggestedCommunities, setSuggestedCommunities] = useState<BasicCommunity[]>([]);
   const [suggestedCommunitiesLoaded, setSuggestedCommunitiesLoaded] = useState(false);
-  const [userCommunitiesLoaded, setUserCommunitiesLoaded] = useState(false);
   
   const dispatch = useAppDispatch();
   const { filteredChats, isLoading: isLoadingChats } = useAppSelector((state) => state.chat);
   const [executeFetchChats] = useApiCall(fetchChatRooms);
   const [executeStartMessage] = useApiCall(startMessage);
-  const [executeFetchUserCommunities] = useApiCall(fetchUserCommunities);
+  // const [executeFetchUserCommunities] = useApiCall(fetchUserCommunities);
   const [executeFetchCommunities] = useApiCall(fetchCommunities);
   
   // Combined page loading state
   const pageLoading = 
     isLoadingChats || 
-    loadingCommunities || 
-    !suggestedCommunitiesLoaded ||
-    !userCommunitiesLoaded;
+    !suggestedCommunitiesLoaded
 
   // Load chats data
   useEffect(() => {
@@ -91,13 +86,47 @@ export default function Activity() {
     loadChats();
   }, [dispatch]);
 
-  // Load user communities data
+  // // Load user communities data
+  // useEffect(() => {
+  //   const loadUserCommunities = async () => {
+  //     setLoadingCommunities(true);
+  //     const result = await executeFetchUserCommunities();
+  //     if (result.success && result.data) {
+  //       // Transform communities to ChatItem format
+  //       const communityItems = result.data.map((community: CommunityResponse) => ({
+  //         id: community._id,
+  //         name: community.name,
+  //         avatar: community.profilePicture || "",
+  //         lastMessage: community.description || "No description",
+  //         description: community.description || "",
+  //         timestamp: new Date().toLocaleTimeString([], {
+  //           hour: "2-digit",
+  //           minute: "2-digit",
+  //         }),
+  //         updatedAt: new Date().toISOString(),
+  //         unread: false,
+  //         type: "community" as const,
+  //         memberCount: community.memberCount || (community.members?.length || 0),
+  //         backgroundImage: community.backgroundImage || "",
+  //         participants: [], // Add empty participants array to satisfy ChatItem type
+  //         members: community.members || []
+  //       }));
+        
+  //       setUserCommunities(communityItems);
+  //     }
+  //     setLoadingCommunities(false);
+  //     setUserCommunitiesLoaded(true);
+  //   };
+    
+  //   loadUserCommunities();
+  // }, []);
+  
+  // Load suggested communities data
   useEffect(() => {
-    const loadUserCommunities = async () => {
-      setLoadingCommunities(true);
-      const result = await executeFetchUserCommunities();
+    const loadSuggestedCommunities = async () => {
+      const result = await executeFetchCommunities();
       if (result.success && result.data) {
-        // Transform communities to ChatItem format
+        setSuggestedCommunities(result.data as BasicCommunity[]);
         const communityItems = result.data.map((community: CommunityResponse) => ({
           id: community._id,
           name: community.name,
@@ -110,28 +139,13 @@ export default function Activity() {
           }),
           updatedAt: new Date().toISOString(),
           unread: false,
+          isJoined: community.isJoined || false,
           type: "community" as const,
-          memberCount: community.memberCount || (community.members?.length || 0),
+          memberCount: community.memberCount || 0,
           backgroundImage: community.backgroundImage || "",
           participants: [], // Add empty participants array to satisfy ChatItem type
-          members: community.members || []
         }));
-        
-        setUserCommunities(communityItems);
-      }
-      setLoadingCommunities(false);
-      setUserCommunitiesLoaded(true);
-    };
-    
-    loadUserCommunities();
-  }, []);
-  
-  // Load suggested communities data
-  useEffect(() => {
-    const loadSuggestedCommunities = async () => {
-      const result = await executeFetchCommunities();
-      if (result.success && result.data) {
-        setSuggestedCommunities(result.data as BasicCommunity[]);
+        setUserCommunities(communityItems.filter(community => community.isJoined));
       }
       setSuggestedCommunitiesLoaded(true);
     };

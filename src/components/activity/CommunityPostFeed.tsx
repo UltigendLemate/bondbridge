@@ -177,7 +177,7 @@ const CommunityPostFeed: React.FC<CommunityPostFeedProps> = ({
               <ExternalLink className="ml-1 h-3 w-3 opacity-0 group-hover:opacity-70" />
             </h3>
             <p className="text-xs text-muted-foreground">
-              {(community.members?.length || 0)} Members
+              {community.memberCount} Members
             </p>
           </div>
         </div>

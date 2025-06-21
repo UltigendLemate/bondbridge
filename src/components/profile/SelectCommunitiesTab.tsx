@@ -19,7 +19,7 @@ const SelectCommunitiesTab: React.FC = () => {
   const mapToCommunity = (communityResponse: CommunityResponse): Community => ({
     id: communityResponse._id,
     name: communityResponse.name,
-    members: communityResponse?.members?.length || 0,
+    members: communityResponse.memberCount || 0,
     pfp: communityResponse.profilePicture || '',
     description: communityResponse.description || '',
     backgroundImage: communityResponse.backgroundImage || '',
@@ -129,7 +129,7 @@ const SelectCommunitiesTab: React.FC = () => {
                 {community.name}
               </h3>
               <p className="text-sm text-muted-foreground">
-                Members: {community.members?.length || 0}
+                Members: {community.memberCount || 0}
               </p>
             </div>
           </div>
