@@ -7,7 +7,8 @@ import { AvatarUrls } from '@/apis/apiTypes/response';
 export const submitProfile = async (profileData: CreateProfileRequest): Promise<CreateProfileResponse> => {
   const { 
     name, 
-    email, 
+    phoneNumber,
+    countryCode,
     dateOfBirth, 
     password, 
     skillSelected, 
@@ -19,14 +20,15 @@ export const submitProfile = async (profileData: CreateProfileRequest): Promise<
   } = profileData;
   
   // Validate required fields
-  if (!name || !email || !dateOfBirth || !password) {
+  if (!name || !phoneNumber || !countryCode || !dateOfBirth || !password) {
     throw new Error('Please fill in all required fields');
   }
   
   const formData = new FormData();
   
   formData.append('name', name);
-  formData.append('email', email);
+  formData.append('mobileNumber', phoneNumber);
+  formData.append('countryCode', countryCode);
   formData.append('referralCode', referralCode || "");
   formData.append('privacyLevel', "0");
 

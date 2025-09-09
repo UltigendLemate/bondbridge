@@ -25,8 +25,11 @@ export const createProfile = createSlice({
     setName: (state, action) => {
       state.name = action.payload;
     },
-    setEmail: (state, action) => {
-      state.email = action.payload;
+    setPhoneNumber: (state, action) => {
+      state.phoneNumber = action.payload;
+    },
+    setCountryCode: (state, action) => {
+      state.countryCode = action.payload;
     },
     setDateOfBirth: (state, action) => {
       state.dateOfBirth = action.payload;
@@ -79,7 +82,8 @@ export const createProfile = createSlice({
 
 export const {
   setName,
-  setEmail,
+  setPhoneNumber,
+  setCountryCode,
   setDateOfBirth,
   setPassword,
   setReferralCode,

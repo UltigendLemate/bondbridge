@@ -47,6 +47,7 @@ export const fetchUserProfile = async (
       referralCode: userData.referralCode || "",
       referralCount: userData.referralData?.referralCount || 0,
       userId: userData._id,
+      statusCode: userData.statusCode || 0,
     },
   };
 };

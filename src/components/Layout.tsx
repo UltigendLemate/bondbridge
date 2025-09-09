@@ -76,6 +76,7 @@ const Layout: React.FC<LayoutProps> = ({
             following: result.data.following,
             isBlocked: result.data.isBlocked,
             avatarSrc: result.data.avatarSrc,
+            statusCode: result.data.statusCode || 0,
 
           })
         );
@@ -140,6 +141,10 @@ const Layout: React.FC<LayoutProps> = ({
       if (!isUserReady) {
         return;
       }
+      // Allow access to setup-profile for users who haven't completed profile setup (statusCode 0)
+      else if (currentPath === "/setup-profile" && currentUser.statusCode === 0) {
+        return;
+      }
       else {
         console.log("navigating to home because user is logged in and on auth not allowed path");
         navigate("/");
@@ -153,7 +158,7 @@ const Layout: React.FC<LayoutProps> = ({
       console.log("navigating to login because user is not logged in and on setup profile");
       navigate("/login");
     }
-  }, [isLoggedIn, isLoadingProfile, currentPath, isUserReady]);
+  }, [isLoggedIn, isLoadingProfile, currentPath, isUserReady, currentUser.statusCode]);
 
   // if (!isLoggedIn && !isPublicPath) {
   //   navigate("/login");

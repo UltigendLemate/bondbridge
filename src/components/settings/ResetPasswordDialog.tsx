@@ -12,12 +12,11 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { KeyRound, Loader2, Eye, EyeOff } from "lucide-react";
 import { toast } from "sonner";
-import { resetPassword } from "@/apis/commonApiCalls/authenticationApi";
+import { resetPasswordEmail } from "@/apis/commonApiCalls/authenticationApi";
 import { useApiCall } from "@/apis/globalCatchError";
 
 interface ResetPasswordData {
-  phoneNumber: string;
-  countryCode: string;
+  email: string;
   password: string;
   oldPassword: string;
 }
@@ -35,12 +34,11 @@ const ResetPasswordDialog: React.FC<ResetPasswordDialogProps> = ({
   const [showOldPassword, setShowOldPassword] = useState(false);
   const [showNewPassword, setShowNewPassword] = useState(false);
   const [formData, setFormData] = useState<ResetPasswordData>({
-    phoneNumber: "",
-    countryCode: "+1",
+    email: "",
     password: "",
     oldPassword: ""
   });
-  const [executeResetPassword] = useApiCall(resetPassword);
+  const [executeResetPassword] = useApiCall(resetPasswordEmail);
 
   const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const { name, value } = e.target;
@@ -55,8 +53,7 @@ const ResetPasswordDialog: React.FC<ResetPasswordDialogProps> = ({
     setIsSubmitting(true);
 
     const { success } = await executeResetPassword({
-      phoneNumber: formData.phoneNumber,
-      countryCode: formData.countryCode,
+      email: formData.email,
       oldPassword: formData.oldPassword,
       password: formData.password
     });
@@ -65,8 +62,7 @@ const ResetPasswordDialog: React.FC<ResetPasswordDialogProps> = ({
       toast.success("Password reset successfully");
       onOpenChange(false);
       setFormData({
-        phoneNumber: "",
-        countryCode: "+1",
+        email: "",
         password: "",
         oldPassword: ""
       });
@@ -89,29 +85,17 @@ const ResetPasswordDialog: React.FC<ResetPasswordDialogProps> = ({
         </DialogHeader>
 
         <form onSubmit={handleResetPassword} className="space-y-4">
-          <div className="grid grid-cols-[100px_1fr] gap-4">
-            <div className="space-y-2">
-              <Label htmlFor="countryCode">Country Code</Label>
-              <Input
-                id="countryCode"
-                name="countryCode"
-                value={formData.countryCode}
-                onChange={handleInputChange}
-                placeholder="+1"
-                required
-              />
-            </div>
-            <div className="space-y-2">
-              <Label htmlFor="phoneNumber">Phone Number</Label>
-              <Input
-                id="phoneNumber"
-                name="phoneNumber"
-                value={formData.phoneNumber}
-                onChange={handleInputChange}
-                placeholder="Enter Your Phone Number"
-                required
-              />
-            </div>
+          <div className="space-y-2">
+            <Label htmlFor="email">Email</Label>
+            <Input
+              id="email"
+              name="email"
+              type="email"
+              value={formData.email}
+              onChange={handleInputChange}
+              placeholder="Enter your email"
+              required
+            />
           </div>
 
           <div className="space-y-2">

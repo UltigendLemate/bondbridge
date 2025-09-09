@@ -2,7 +2,8 @@ import React, { useState, useEffect } from "react";
 import { useDispatch, useSelector } from "react-redux";
 import { 
   setName, 
-  setEmail, 
+  setPhoneNumber,
+  setCountryCode, 
   setDateOfBirth,
   setPassword, 
   setReferralCode
@@ -18,6 +19,7 @@ import {
   TooltipTrigger 
 } from "@/components/ui/tooltip";
 import { Info } from "lucide-react";
+import { CustomPhoneInput } from "../ui/custom-phone-input";
 
 interface PersonalInfoTabProps {
   onValidationChange?: (isValid: boolean) => void;
@@ -25,7 +27,7 @@ interface PersonalInfoTabProps {
 
 const PersonalInfoTab: React.FC<PersonalInfoTabProps> = ({ onValidationChange }) => {
   const dispatch = useDispatch();
-  const { name, email, dateOfBirth, password, referralCode } = useSelector(
+  const { name, phoneNumber, countryCode, dateOfBirth, password, referralCode } = useSelector(
     (state: RootState) => state.createProfile
   );
   const [showPassword, setShowPassword] = useState(false);
@@ -52,10 +54,23 @@ const PersonalInfoTab: React.FC<PersonalInfoTabProps> = ({ onValidationChange })
     return age >= 18;
   };
 
+  // Handle phone number change
+  const handlePhoneChange = (
+    _isValid: boolean,
+    value: string,
+    selectedCountryData: { dialCode?: string }
+  ) => {
+    if (selectedCountryData && selectedCountryData.dialCode) {
+      dispatch(setCountryCode(selectedCountryData.dialCode));
+    }
+    // value is already the national number, so no need to strip dial code here
+    dispatch(setPhoneNumber(value.replace(/\D/g, '')));
+  };
+
   // Validate all required fields
   useEffect(() => {
     const isNameValid = name.trim().length > 0;
-    const isEmailValid = /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email);
+    const isPhoneValid = phoneNumber.trim().length > 0;
     const isDateOfBirthValid = dateOfBirth.trim().length > 0;
     const isPasswordValid = password.trim().length >= 6;
     
@@ -79,13 +94,13 @@ const PersonalInfoTab: React.FC<PersonalInfoTabProps> = ({ onValidationChange })
       setPasswordError(null);
     }
     
-    const allValid = isNameValid && isEmailValid && isDateOfBirthValid && isPasswordValid && !ageError;
+    const allValid = isNameValid && isPhoneValid && isDateOfBirthValid && isPasswordValid && !ageError;
     
     // Notify parent component of validation status
     if (onValidationChange) {
       onValidationChange(allValid);
     }
-  }, [name, email, dateOfBirth, password, onValidationChange, ageError]);
+  }, [name, phoneNumber, dateOfBirth, password, onValidationChange, ageError]);
 
   const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const { id, value } = e.target;
@@ -96,9 +111,6 @@ const PersonalInfoTab: React.FC<PersonalInfoTabProps> = ({ onValidationChange })
         dispatch(setName(capitalizedName));
         break;
       }
-      case "email":
-        dispatch(setEmail(value));
-        break;
       case "dob":
         dispatch(setDateOfBirth(value));
         break;
@@ -132,15 +144,17 @@ const PersonalInfoTab: React.FC<PersonalInfoTabProps> = ({ onValidationChange })
       </div>
       
       <div>
-        <Label htmlFor="email">
-          Email<span className="text-destructive -ml-1">*</span>
+        <Label htmlFor="phoneNumber">
+          Phone<span className="text-destructive -ml-1">*</span>
         </Label>
-        <Input
-          type="email"
-          id="email"
-          value={email}
-          onChange={handleChange}
-        />
+        <div className="mt-1 relative" style={{ height: 'auto' }}>
+          <CustomPhoneInput 
+            value={phoneNumber}
+            onChange={handlePhoneChange}
+            defaultCountryCode={countryCode}
+            placeholder="Enter phone number"
+          />
+        </div>
       </div>
       
 

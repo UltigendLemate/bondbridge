@@ -18,6 +18,7 @@ interface CurrentUserState {
   following: number;
   isBlocked: boolean;
   avatarSrc: string;
+  statusCode: number;
 }
 
 const initialState: CurrentUserState = {
@@ -38,6 +39,7 @@ const initialState: CurrentUserState = {
   following: 0,
   isBlocked: false,
   avatarSrc: "",
+  statusCode: 0,
 };
 
 const currentUserSlice = createSlice({

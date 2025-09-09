@@ -12,8 +12,21 @@ export type SendOTPRequest = BasePhoneRequest & {
   forgot?: string;
 };
 
+// Email OTP request type
+export interface SendOTPEmailRequest {
+  email: string;
+  forgot?: string;
+}
+
 // OTP verification request type
 export interface VerifyOTPRequest extends BasePhoneRequest {
+  otp: string;
+  forgot?: string;
+}
+
+// Email OTP verification request type
+export interface VerifyOTPEmailRequest {
+  email: string;
   otp: string;
   forgot?: string;
 }
@@ -24,6 +37,12 @@ export interface RewriteWithBondChatRequest {
 
 // Login request type
 export interface LoginRequest extends BasePhoneRequest {
+  password: string;
+}
+
+// Email login request type
+export interface LoginEmailRequest {
+  email: string;
   password: string;
 }
 
@@ -45,7 +64,8 @@ export interface Community {
 export interface CreateProfileRequest {
   userId?: string;
   name: string;
-  email: string;
+  phoneNumber: string;
+  countryCode: string;
   dateOfBirth: string;
   password: string;
   skillSelected: string[];

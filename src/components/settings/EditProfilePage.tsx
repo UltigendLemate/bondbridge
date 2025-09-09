@@ -257,12 +257,6 @@ const EditProfilePage: React.FC = () => {
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     
-    // Check if email is provided
-    if (!formData.email || formData.email.trim() === '') {
-      toast.error('Email is required');
-      return;
-    }
-    
     // Check if at least 3 interests are selected
     if (selectedInterests.length < 3) {
       toast.error('Please select at least 3 interests');
@@ -292,7 +286,6 @@ const EditProfilePage: React.FC = () => {
     // Prepare the request data
     const profileData: {
       name: string;
-      email: string;
       interests: string[];
       privacyLevel: number;
       bio: string;
@@ -300,7 +293,6 @@ const EditProfilePage: React.FC = () => {
       image?: File;
     } = {
       name: formData.username,
-      email: formData.email,
       interests: selectedInterests,
       privacyLevel: privacyLevel ?? 0,
       bio: formData.bio
@@ -323,13 +315,11 @@ const EditProfilePage: React.FC = () => {
       // Update Redux store with appropriate profile picture data
       const updatedUserData: {
         username: string;
-        email: string;
         bio: string;
         profilePic?: string;
         avatar?: string;
       } = {
         username: formData.username,
-        email: formData.email,
         bio: formData.bio,
       };
 
@@ -555,6 +545,8 @@ const EditProfilePage: React.FC = () => {
               type="email"
               value={formData.email}
               onChange={handleInputChange}
+              disabled
+              className="bg-muted cursor-not-allowed"
             />
           </div>
 

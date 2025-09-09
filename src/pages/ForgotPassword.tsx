@@ -8,17 +8,8 @@ import { Label } from '@/components/ui/label';
 import { Input } from '@/components/ui/input';
 import OTPForm from "../components/auth/OTPForm";
 import { ArrowLeft } from "lucide-react";
-import { CustomPhoneInput } from "@/components/ui/custom-phone-input";
-
 // Import the API function (you'll need to create this)
-import { sendOTP, verifyOTP, forgotPassword } from "../apis/commonApiCalls/authenticationApi";
-import { BasePhoneRequest } from '@/apis/apiTypes/request';
-
-// Assuming BasePhoneRequest is defined somewhere, extend it to include 'forgot'
-export type VerifyOTPRequest = BasePhoneRequest & {
-  otp: string;
-  forgot?: string;
-};
+import { sendOTPEmail, verifyOTPEmail, forgotPasswordEmail } from "../apis/commonApiCalls/authenticationApi";
 
 // Custom styles for the phone input component that change with theme
 // const customPhoneInputStyles = `
@@ -85,22 +76,20 @@ export type VerifyOTPRequest = BasePhoneRequest & {
 // `;
 
 const ForgotPassword: React.FC = () => {
-    const [step, setStep] = useState<'phone' | 'otp' | 'newPassword'>('phone');
-    const [phoneNumber, setPhoneNumber] = useState('');
-    const [countryCode, setCountryCode] = useState('1'); // Default to US (dial code "1")
+    const [step, setStep] = useState<'email' | 'otp' | 'newPassword'>('email');
+    const [email, setEmail] = useState('');
     const [newPassword, setNewPassword] = useState('');
     const [confirmPassword, setConfirmPassword] = useState('');
     const [passwordError, setPasswordError] = useState('');
-    const [phoneError, setPhoneError] = useState('');
+    const [emailError, setEmailError] = useState('');
     const [otpError, setOtpError] = useState('');
     const [receivedOTP, setReceivedOTP] = useState<string>('');
-    // const phoneInputRef = useRef(null); // No longer needed for CustomPhoneInput
     const navigate = useNavigate();
 
     // Use our custom hooks for API calls
-    const [executeSendOTP, isSendingOTP] = useApiCall(sendOTP);
-    const [executeVerifyOTP, isVerifyingOTP] = useApiCall(verifyOTP);
-    const [executeForgotPassword, isResettingPassword] = useApiCall(forgotPassword);
+    const [executeSendOTP, isSendingOTP] = useApiCall(sendOTPEmail);
+    const [executeVerifyOTP, isVerifyingOTP] = useApiCall(verifyOTPEmail);
+    const [executeForgotPassword, isResettingPassword] = useApiCall(forgotPasswordEmail);
 
     // Add effect to apply styles to the phone input after it's rendered
     // useEffect(() => {
@@ -153,53 +142,35 @@ const ForgotPassword: React.FC = () => {
     //     };
     // }, [step]);
 
-    const handlePhoneChange = (
-        _isValid: boolean, // isValid from CustomPhoneInput can be used if needed in the future
-        value: string, // This is the national number from CustomPhoneInput
-        selectedCountryData: { dialCode?: string } // This is SimplifiedCountryData from CustomPhoneInput
-    ) => {
-        if (selectedCountryData && selectedCountryData.dialCode) {
-            setCountryCode(selectedCountryData.dialCode);
-        }
-
-        // value is already the national number, so no need to strip dial code here
-        setPhoneNumber(value.replace(/\D/g, ''));
-    };
     const handleSendOTP = async (e: React.FormEvent) => {
         e.preventDefault();
         // Clear any previous error
-        setPhoneError('');
-        
-        const validCountryCode = "+" + countryCode;
+        setEmailError('');
 
         const result = await executeSendOTP({
-            phoneNumber,
-            countryCode: validCountryCode,
+            email,
             forgot: '1'
         });
         if (result.success && result.data) {
             // For testing purposes - extract OTP from response
-            // In a production environment, this would come via SMS
+            // In a production environment, this would come via email
             // @ts-expect-error - accessing OTP for testing purposes
-            const otpValue = result.data.otp || "Check your phone for OTP";
+            const otpValue = result.data.otp || "Check your email for OTP";
             setReceivedOTP(otpValue.toString());
             setStep('otp');
         } else {
-            // Show error message for invalid phone number
-            setPhoneError(result.message || "Invalid Phone Number");
+            // Show error message for invalid email
+            setEmailError(result.message || "Invalid Email");
         }
     };
 
     const handleVerifyOTP = async (otp: string) => {
         // Clear any previous error
         setOtpError('');
-        
-        const validCountryCode = "+" + countryCode;
 
         const result = await executeVerifyOTP({
-            phoneNumber,
+            email,
             otp,
-            countryCode: validCountryCode,
             forgot: '1'
         });
 
@@ -226,11 +197,9 @@ const ForgotPassword: React.FC = () => {
             return;
         }
 
-        // Call the forgotPassword function to reset the password
-        const validCountryCode = "+" + countryCode;
+        // Call the forgotPasswordEmail function to reset the password
         const result = await executeForgotPassword({
-            phoneNumber,
-            countryCode: validCountryCode,
+            email,
             password: newPassword
         });
 
@@ -244,30 +213,33 @@ const ForgotPassword: React.FC = () => {
     };
 
     const handleBackClick = () => {
-        if(step === 'phone') {
+        if(step === 'email') {
             navigate('/login');
         } else {
-            setStep('phone');
+            setStep('email');
         }
     };
 
     const renderForm = () => {
         switch (step) {
-            case 'phone':
+            case 'email':
                 return (
                     <form onSubmit={handleSendOTP} className="space-y-4">
                         <div>
-                            <Label htmlFor="phoneNumber" className="block text-sm font-medium text-foreground">Phone</Label>
-                            <div className="mt-1 relative" style={{ height: 'auto' }}> {/* Adjusted height to auto for flex layout of CustomPhoneInput */}
-                                <CustomPhoneInput 
-                                    value={phoneNumber}
-                                    onChange={handlePhoneChange}
-                                    defaultCountryCode={countryCode} // Pass the dial code e.g. "1"
-                                    placeholder="Enter phone number"
+                            <Label htmlFor="email" className="block text-sm font-medium text-foreground">Email</Label>
+                            <div className="mt-1 relative">
+                                <Input
+                                    type="email"
+                                    id="email"
+                                    value={email}
+                                    onChange={(e) => setEmail(e.target.value)}
+                                    className="mt-1 block w-full h-10 px-3 py-2 border border-input rounded-md shadow-sm focus:outline-none focus:ring-ring focus:border-ring"
+                                    placeholder="Enter your email"
+                                    required
                                 />
                             </div>
-                            {phoneError && (
-                                <p className="text-foreground text-sm mt-1 font-semibold">{phoneError}</p>
+                            {emailError && (
+                                <p className="text-foreground text-sm mt-1 font-semibold">{emailError}</p>
                             )}
                         </div>
 
@@ -285,7 +257,7 @@ const ForgotPassword: React.FC = () => {
                     <div className="space-y-4">
                         <div className="text-center mb-4">
                             <p className="text-sm text-muted-foreground">
-                                We've sent a verification code to your phone
+                                We've sent a verification code to your email
                             </p>
                         </div>
                         <OTPForm 
@@ -299,7 +271,7 @@ const ForgotPassword: React.FC = () => {
                             <p className="text-foreground text-sm text-center font-semibold">{otpError}</p>
                         )}
                         <Button
-                            onClick={() => setStep('phone')}
+                            onClick={() => setStep('email')}
                             variant="link"
                             className="mt-4 text-foreground hover:underline w-full text-center cursor-pointer"
                         >
@@ -400,7 +372,7 @@ const ForgotPassword: React.FC = () => {
 
     return (
         <>
-            {(step === 'otp' || step === 'newPassword' || step === 'phone') && (
+            {(step === 'otp' || step === 'newPassword' || step === 'email') && (
                 <Button
                     variant="ghost"
                     size="icon"

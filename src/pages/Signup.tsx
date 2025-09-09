@@ -1,113 +1,87 @@
-import React, { useState, useEffect } from "react";
+import { Checkbox } from "@/components/ui/checkbox";
+import React, { useEffect, useRef, useState } from "react";
 import { Link, useNavigate, useSearchParams } from "react-router-dom";
 import AuthLayout from "../components/auth/AuthLayout";
 import OTPForm from "../components/auth/OTPForm";
-import { Checkbox } from "@/components/ui/checkbox";
 // import IntlTelInput from "react-intl-tel-input";
-import "react-intl-tel-input/dist/main.css";
-import { sendOTP, verifyOTP } from "../apis/commonApiCalls/authenticationApi";
-import { useApiCall } from "../apis/globalCatchError";
+import Captcha, { CaptchaHandle } from "@/components/auth/captcha";
 import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
 import { ArrowLeft } from "lucide-react";
-import { CustomPhoneInput } from "@/components/ui/custom-phone-input";
+import "react-intl-tel-input/dist/main.css";
 import { toast } from "sonner";
-
+import { sendOTPEmail, verifyOTPEmail } from "../apis/commonApiCalls/authenticationApi";
+import { useApiCall } from "../apis/globalCatchError";
 
 const Signup: React.FC = () => {
   const [showOTP, setShowOTP] = useState(false);
-  const [phone, setPhone] = useState("");
-  const [countryCode, setCountryCode] = useState("1"); // Default to USA (+1)
-  const [, setIsValidPhone] = useState(false);
+  const [email, setEmail] = useState("");
   const [receivedOTP, setReceivedOTP] = useState<string>("");
   const [errorMessage, setErrorMessage] = useState<string>("");
+  const [captchaSolved, setCaptchaSolved] = useState(false);
+  const captchaRef = useRef<CaptchaHandle | null>(null);
+  const honeypotRef = useRef<HTMLInputElement | null>(null);
   const navigate = useNavigate();
   const [searchParams] = useSearchParams();
 
   // Handle referral code from URL
   useEffect(() => {
-    const referralCode = searchParams.get('referral');
+    const referralCode = searchParams.get("referral");
     if (referralCode) {
-      sessionStorage.setItem('referralCode', referralCode);
+      sessionStorage.setItem("referralCode", referralCode);
     }
   }, [searchParams]);
 
   // Use our custom hooks for API calls
-  const [executeSendOTP, isSendingOTP] = useApiCall(sendOTP);
-  const [executeVerifyOTP, isVerifyingOTP] = useApiCall(verifyOTP);
+  const [executeSendOTP, isSendingOTP] = useApiCall(sendOTPEmail);
+  const [executeVerifyOTP, isVerifyingOTP] = useApiCall(verifyOTPEmail);
 
-
-
-
-  interface CountryData {
-    dialCode?: string;
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    [key: string]: any;
-  }
-
-  const handlePhoneChange = (
-    isValid: boolean,
-    value: string,
-    selectedCountryData: CountryData
-  ) => {
-    setIsValidPhone(isValid);
-    if (selectedCountryData && selectedCountryData.dialCode) {
-      setCountryCode(selectedCountryData.dialCode);
-    }
-
-    // Remove the country code from the phone number
-    if (selectedCountryData && selectedCountryData.dialCode) {
-      const dialCode = selectedCountryData.dialCode;
-      let cleanNumber = value.replace(/\D/g, "");
-
-      // If number starts with the dial code, remove it
-      const dialCodeString = String(dialCode);
-      if (cleanNumber.startsWith(dialCodeString)) {
-        cleanNumber = cleanNumber.substring(dialCodeString.length);
-      }
-
-      setPhone(cleanNumber);
-    } else {
-      setPhone(value.replace(/\D/g, ""));
-    }
-  };
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     // Clear any previous error messages
     setErrorMessage("");
 
-    const validCountryCode = "+" + countryCode;
+    if (!captchaSolved) {
+      setErrorMessage("Please complete the CAPTCHA.");
+      return;
+    }
+    if (honeypotRef.current && honeypotRef.current.value.trim().length > 0) {
+      setErrorMessage("Invalid request.");
+      return;
+    }
 
     const result = await executeSendOTP({
-      phoneNumber: phone,
-      countryCode: validCountryCode,
+      email,
     });
 
     if (result.status === 409) {
-      setErrorMessage("User with this Phone Number Already Exists");
+      setErrorMessage("User with this Email Already Exists");
+      captchaRef.current?.reset();
+      setCaptchaSolved(false);
       return;
     } else if (!result.success) {
-      setErrorMessage(result.message || "Invalid Phone Number");
+      setErrorMessage(result.message || "Invalid Email");
+      captchaRef.current?.reset();
+      setCaptchaSolved(false);
       return;
     }
 
     if (result.success && result.data) {
       // For testing purposes - extract OTP from response
-      // In a production environment, this would come via SMS
+      // In a production environment, this would come via email
       // @ts-expect-error - accessing OTP for testing purposes
-      const otpValue = result.data.otp || "Check your phone for OTP";
+      const otpValue = result.data.otp || "Check your email for OTP";
       setReceivedOTP(otpValue.toString());
       setShowOTP(true);
     }
   };
 
   const handleVerifyOTP = async (otp: string) => {
-    const validCountryCode = "+" + countryCode;
-
     const result = await executeVerifyOTP({
-      phoneNumber: phone,
+      email,
       otp,
-      countryCode: validCountryCode,
     });
 
     if (result.success && result.data) {
@@ -117,8 +91,7 @@ const Signup: React.FC = () => {
       //   dispatch(updateCurrentUser(userData.data));
       // }
       navigate("/setup-profile");
-    }
-    else{
+    } else {
       toast.error("Invalid OTP");
     }
   };
@@ -161,36 +134,21 @@ const Signup: React.FC = () => {
             className="space-y-4 w-full flex flex-col items-center relative"
           >
             <div className="w-full flex flex-col justify-start">
-              <label
-                htmlFor="phone"
+              <Label
+                htmlFor="email"
                 className="block text-sm font-medium text-foreground"
               >
-                Phone
-              </label>
+                Email
+              </Label>
               <div className="relative">
-                {/* <IntlTelInput
-                  ref={phoneInputRef}
-                  containerClassName="intl-tel-input"
-                  inputClassName="form-control w-full h-10 px-3 py-2 border border-input rounded-md shadow-sm focus:outline-none focus:ring-primary focus:border-primary"
-                  defaultCountry={"us"}
-                  preferredCountries={["us"]}
-                  onPhoneNumberChange={handlePhoneChange}
-                  onPhoneNumberBlur={handlePhoneChange}
-                  format={true}
-                  formatOnInit={true}
-                  autoPlaceholder={true}
-                  nationalMode={false}
-                  separateDialCode={true}
-                  telInputProps={{
-                    className: "w-full",
-                    placeholder: "Enter phone number",
-                  }}
-                /> */}
-                <CustomPhoneInput
-                  value={phone}
-                  onChange={handlePhoneChange}
-                  defaultCountryCode={countryCode}
-                  placeholder="Enter phone number"
+                <Input
+                  type="email"
+                  id="email"
+                  value={email}
+                  onChange={(e) => setEmail(e.target.value)}
+                  className="mt-1 block w-full h-10 px-3 py-2 border border-input rounded-md shadow-sm focus:outline-none focus:ring-ring focus:border-ring"
+                  placeholder="Enter your email"
+                  required
                 />
                 {errorMessage && (
                   <p className="text-foreground text-sm mt-1 font-semibold">
@@ -198,6 +156,24 @@ const Signup: React.FC = () => {
                   </p>
                 )}
               </div>
+            </div>
+
+            <div className="w-full flex flex-col justify-start">
+              <label className="block text-sm font-medium text-foreground">
+                Verification
+              </label>
+              <Captcha
+                ref={captchaRef}
+                onSolve={setCaptchaSolved}
+                minSolveMs={1500}
+              />
+              <input
+                ref={honeypotRef}
+                name="company"
+                className="hidden"
+                tabIndex={-1}
+                autoComplete="off"
+              />
             </div>
 
             <div className="space-y-2 flex flex-col justify-start w-full">
@@ -240,23 +216,33 @@ const Signup: React.FC = () => {
             <button
               type="submit"
               className="w-full py-2 px-4 border border-transparent rounded-md shadow-sm text-sm font-medium text-white bg-primary hover:bg-primary/90 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-primary cursor-pointer"
-              disabled={isSendingOTP}
+              disabled={isSendingOTP || !captchaSolved}
             >
-              {isSendingOTP ? "Sending OTP..." : "Sign Up"}
+              {isSendingOTP
+                ? "Sending OTP..."
+                : !captchaSolved
+                ? "Verify CAPTCHA"
+                : "Sign Up"}
             </button>
 
             <div className="flex flex-col items-center justify-center gap-1">
               <div className="flex justify-center pt-4">
                 {/* <p className="text-md text-center text-muted-foreground">Get the app:</p> */}
                 <div className="flex justify-center gap-4">
-                  <Link to="https://apps.apple.com/in/app/bondbridge-ai/id6745119162" className="">
+                  <Link
+                    to="https://apps.apple.com/in/app/bondbridge-ai/id6745119162"
+                    className=""
+                  >
                     <img
                       src="/assets/stores/appstore.svg"
                       alt="Download on App Store"
                       className="w-40"
                     />
                   </Link>
-                  <Link to="https://play.google.com/store/apps/details?id=com.bondbridge.bondbridgeonline" className="">
+                  <Link
+                    to="https://play.google.com/store/apps/details?id=com.bondbridge.bondbridgeonline"
+                    className=""
+                  >
                     <img
                       src="/assets/stores/googleplay.svg"
                       alt="Get it on Google Play"
@@ -271,7 +257,7 @@ const Signup: React.FC = () => {
           <div className="space-y-4">
             <div className="mb-4">
               <p className="text-sm text-muted-foreground">
-                We've sent a verification code to your phone
+                We've sent a verification code to your email
               </p>
             </div>
             <OTPForm

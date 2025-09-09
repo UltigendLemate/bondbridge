@@ -15,7 +15,8 @@ export interface Community {
 
 export const INITIAL_PROFILE_STATE = {
   name: "",
-  email: "",
+  phoneNumber: "",
+  countryCode: "1",
   dateOfBirth: "",
   password: "",
   skillSelected: [] as string[],
