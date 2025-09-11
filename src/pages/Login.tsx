@@ -64,6 +64,8 @@ const Login: React.FC = () => {
         token: data.token,
         username: data.userDetails.name || "",
         email: data.userDetails.email || "",
+        mobileNumber: data.userDetails.phoneNumber || "",
+        countryCode: data.userDetails.countryCode || "",
         avatar: data.userDetails.avatar || data.userDetails.profilePic || "",
         statusCode: data.userDetails.statusCode,
       })

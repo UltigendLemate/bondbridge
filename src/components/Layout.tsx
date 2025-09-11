@@ -68,6 +68,8 @@ const Layout: React.FC<LayoutProps> = ({
             username: result.data.username,
             nickname: result.data.nickName,
             email: result.data.email,
+            mobileNumber: result.data.mobileNumber,
+            countryCode: result.data.countryCode,
             avatar: result.data.avatarSrc,
             bio: result.data.bio,
             privacyLevel: result.data.privacyLevel,

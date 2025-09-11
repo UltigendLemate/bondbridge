@@ -234,6 +234,8 @@ const Profile: React.FC<ProfileProps> = ({
               username: result.data.username,
               nickname: result.data.nickName,
               email: result.data.email,
+              mobileNumber: result.data.mobileNumber,
+              countryCode: result.data.countryCode,
               profilePic: result.data.profilePic,
               avatar: result.data.avatarSrc,
               privacyLevel: result.data.privacyLevel,

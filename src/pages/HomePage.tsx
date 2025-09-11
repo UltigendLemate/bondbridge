@@ -68,6 +68,8 @@ export default function HomePage() {
               username: result.data.data.username,
               nickname: result.data.data.nickName,
               email: result.data.data.email,
+              mobileNumber: result.data.data.mobileNumber,
+              countryCode: result.data.data.countryCode,
               avatar: result.data.data.avatarSrc,
               profilePic: result.data.data.profilePic,
               bio: result.data.data.bio,

@@ -29,7 +29,7 @@ interface AvatarData {
 
 const EditProfilePage: React.FC = () => {
   const dispatch = useAppDispatch();
-  const { username, email, avatar, profilePic, interests, privacyLevel, bio } = useAppSelector(
+  const { username, email, mobileNumber, countryCode, avatar, profilePic, interests, privacyLevel, bio } = useAppSelector(
     (state) => state.currentUser
   );
 
@@ -545,6 +545,18 @@ const EditProfilePage: React.FC = () => {
               type="email"
               value={formData.email}
               onChange={handleInputChange}
+              disabled
+              className="bg-muted cursor-not-allowed"
+            />
+          </div>
+
+          <div className="space-y-2">
+            <Label htmlFor="phoneNumber">Phone Number</Label>
+            <Input
+              id="phoneNumber"
+              name="phoneNumber"
+              type="tel"
+              value={mobileNumber ? `+${countryCode} ${mobileNumber}` : ''}
               disabled
               className="bg-muted cursor-not-allowed"
             />

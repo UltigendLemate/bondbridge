@@ -29,6 +29,8 @@ export const fetchUserProfile = async (
       username: userData.name,
       nickName: userData.nickName,
       email: isCurrentUser ? userData.email : "",
+      mobileNumber: isCurrentUser ? userData.mobileNumber : "",
+      countryCode: isCurrentUser ? userData.countryCode : "",
       followers: userData.followers || 0,
       following: userData.followings || 0,
       avatarSrc: userData.avatar || userData.profilePic || "/profile/user.png",

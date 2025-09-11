@@ -141,6 +141,8 @@ const SetupProfile: React.FC = () => {
           username: result.data.userDetails.name,
           nickname: result.data.userDetails.nickName,
           email: result.data.userDetails.email,
+          mobileNumber: result.data.userDetails.mobileNumber,
+          countryCode: result.data.userDetails.countryCode,
           avatar: result.data.userDetails.avatar,
           profilePic: result.data.userDetails.profilePic,
           bio: result.data.userDetails.bio,

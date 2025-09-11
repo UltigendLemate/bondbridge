@@ -4,6 +4,8 @@ interface CurrentUserState {
   username: string;
   nickname: string;
   email: string;
+  mobileNumber: string;
+  countryCode: string;
   avatar: string;
   profilePic?: string;
   bio?: string;
@@ -25,6 +27,8 @@ const initialState: CurrentUserState = {
   username: "",
   nickname: "",
   email: "",
+  mobileNumber: "",
+  countryCode: "",
   avatar: "",
   profilePic: "",
   bio: "",
