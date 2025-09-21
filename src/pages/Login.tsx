@@ -13,6 +13,7 @@ import { LoginResponse } from "../apis/apiTypes/response";
 import { loginUserWithEmail } from "../apis/commonApiCalls/authenticationApi";
 import { useApiCall } from "../apis/globalCatchError";
 import { updateCurrentUser } from "../store/currentUserSlice";
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
 
 const Login: React.FC = () => {
   const [email, setEmail] = useState("");
@@ -22,6 +23,7 @@ const Login: React.FC = () => {
   const dispatch = useDispatch();
   const [passwordType, setPasswordType] = useState("password");
   const [captchaSolved, setCaptchaSolved] = useState(false);
+  const [isContactDialogOpen, setIsContactDialogOpen] = useState(false);
   const captchaRef = useRef<CaptchaHandle | null>(null);
   const honeypotRef = useRef<HTMLInputElement | null>(null);
 
@@ -169,7 +171,25 @@ const Login: React.FC = () => {
             />
           </div>
 
-          <div className="flex justify-end w-full">
+          <div className="flex justify-between w-full">
+            <Dialog open={isContactDialogOpen} onOpenChange={setIsContactDialogOpen}>
+              <DialogTrigger asChild>
+                <button
+                  type="button"
+                  className="text-sm text-foreground hover:text-muted-foreground cursor-pointer"
+                >
+                  Forgot Email?
+                </button>
+              </DialogTrigger>
+              <DialogContent className="sm:max-w-md">
+                <DialogHeader>
+                  <DialogTitle>Contact Us</DialogTitle>
+                </DialogHeader>
+                <div className="text-sm text-foreground">
+                  Contact us at <span className="font-bold text-foreground">info@bondbridge.ai</span> for email related queries
+                </div>
+              </DialogContent>
+            </Dialog>
             <Link
               to="/forgot-password"
               className="text-sm text-foreground hover:text-muted-foreground"
