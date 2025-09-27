@@ -1,26 +1,27 @@
-import apiClient from '@/apis/apiClient';
+import apiClient from "@/apis/apiClient";
 import {
   SendOTPRequest,
   SendOTPEmailRequest,
-  VerifyOTPRequest,
   VerifyOTPEmailRequest,
   LoginRequest,
   LoginEmailRequest,
   SetPasswordRequest,
-} from '../apiTypes/request';
+  VerifyOTPRequest,
+} from "../apiTypes/request";
 import {
-  SendOTPResponse,
-  VerifyOTPResponse,
   LoginResponse,
+  SendOTPResponse,
   SetPasswordResponse,
-} from '../apiTypes/response';
+  VerifyOTPResponse,
+} from "../apiTypes/response";
 
 // Define proper types for request bodies
-type SendOTPRequestBody = {
-  phoneNumber: string;
-  countryCode: string;
-  forgot?: string;
-};
+// (Original) Type used by active OTP implementation – kept commented while OTP disabled.
+// type SendOTPRequestBody = {
+//   phoneNumber: string;
+//   countryCode: string;
+//   forgot?: string;
+// };
 
 type SendOTPEmailRequestBody = {
   email: string;
@@ -41,59 +42,63 @@ type VerifyOTPEmailRequestBody = {
 };
 
 // Function to send OTP for signup or forgot password
-export const sendOTP = async (phoneData: SendOTPRequest): Promise<SendOTPResponse> => {
+
+export const sendOTP = async (
+  // eslint-disable-next-line @typescript-eslint/no-unused-vars
+  _phoneData: SendOTPRequest
+): Promise<SendOTPResponse> => {
+  // TEMPORARY SHUTDOWN: OTP sending disabled
+  // To re-enable, restore the original implementation below.
+  // --- BEGIN DISABLED ORIGINAL IMPLEMENTATION ---
+  /*
   const { phoneNumber, countryCode, forgot } = phoneData;
-  
-  // Validate required fields
   if (!phoneNumber || !countryCode) {
     throw new Error('Phone number and country code are required');
   }
-  
-  // Include forgot parameter if provided
   const requestBody: SendOTPRequestBody = { phoneNumber, countryCode };
-  if (forgot) {
-    requestBody.forgot = forgot;
-  }
-  
+  if (forgot) { requestBody.forgot = forgot; }
   const response = await apiClient.post<SendOTPResponse>(`/send-otp`, requestBody);
-
-  if (response.status === 200) {
-    return response.data;
-  } else {
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    throw new Error((response as any).response?.data.message || 'Failed to send OTP');
-  }
+  if (response.status === 200) { return response.data; }
+  else { throw new Error((response as any).response?.data.message || 'Failed to send OTP'); }
+  */
+  console.warn("[SECURITY] sendOTP blocked: feature temporarily disabled.");
+  // We throw an error so calling code (useApiCall wrapper) treats it as a failed attempt
+  throw new Error("Signups temporarily disabled. Please try again later.");
 };
 
 // Function to verify OTP
-export const verifyOTP = async (otpData: VerifyOTPRequest): Promise<VerifyOTPResponse> => {
+export const verifyOTP = async (
+  otpData: VerifyOTPRequest
+): Promise<VerifyOTPResponse> => {
   const { phoneNumber, countryCode, otp, forgot } = otpData;
-  
+
   // Validate required fields
   if (!phoneNumber || !countryCode || !otp) {
-    throw new Error('Phone number, country code, and OTP are required');
+    throw new Error("Phone number, country code, and OTP are required");
   }
-  
+
   // Include forgot parameter if provided
   const requestBody: VerifyOTPRequestBody = { phoneNumber, countryCode, otp };
   if (forgot) {
     requestBody.forgot = forgot;
   }
-  
-  const response = await apiClient.post<VerifyOTPResponse>(`/verify-otp`, requestBody);
-  
+
+  const response = await apiClient.post<VerifyOTPResponse>(
+    `/verify-otp`,
+    requestBody
+  );
+
   if (response.status === 200) {
-    
     // Store token and userId in localStorage
     if (response.data.token && response.data.userDetails?._id) {
-      localStorage.setItem('token', response.data.token);
-      localStorage.setItem('userId', response.data.userDetails._id);
-      localStorage.setItem('deviceId', response.data.deviceId);
+      localStorage.setItem("token", response.data.token);
+      localStorage.setItem("userId", response.data.userDetails._id);
+      localStorage.setItem("deviceId", response.data.deviceId);
     }
-    
+
     return response.data;
   } else {
-    throw new Error(response.data.message || 'Failed to verify OTP');
+    throw new Error(response.data.message || "Failed to verify OTP");
   }
 };
 
@@ -155,32 +160,37 @@ export const verifyOTPEmail = async (otpData: VerifyOTPEmailRequest): Promise<Ve
 };
 
 // Function to login with phone and password
-export const loginUser = async (loginData: LoginRequest): Promise<LoginResponse> => {
+export const loginUser = async (
+  loginData: LoginRequest
+): Promise<LoginResponse> => {
   const { phoneNumber, countryCode, password } = loginData;
-  
+
   // Validate required fields
   if (!phoneNumber || !countryCode || !password) {
-    throw new Error('Phone number, country code, and password are required');
+    throw new Error("Phone number, country code, and password are required");
   }
-  
+
   const response = await apiClient.post<LoginResponse>(`/login`, {
     phoneNumber,
     countryCode,
-    password
+    password,
   });
-  
+
   if (response.status === 200) {
-    
-    if (response.data.token && response.data.userDetails?._id && response.data.userDetails.statusCode != 0) {
-      localStorage.setItem('socketToken', response.data.socketToken)
-      localStorage.setItem('token', response.data.token);
-      localStorage.setItem('userId', response.data.userDetails._id);
-      localStorage.setItem('deviceId', response.data.deviceId);
+    if (
+      response.data.token &&
+      response.data.userDetails?._id &&
+      response.data.userDetails.statusCode != 0
+    ) {
+      localStorage.setItem("socketToken", response.data.socketToken);
+      localStorage.setItem("token", response.data.token);
+      localStorage.setItem("userId", response.data.userDetails._id);
+      localStorage.setItem("deviceId", response.data.deviceId);
     }
-    
+
     return response.data;
   } else {
-    throw new Error(response.data.message || 'Failed to login');
+    throw new Error(response.data.message || "Failed to login");
   }
 };
 
@@ -214,21 +224,23 @@ export const loginUserWithEmail = async (loginData: LoginEmailRequest): Promise<
 };
 
 // Function to set user password
-export const setPassword = async (data: SetPasswordRequest): Promise<SetPasswordResponse> => {
+export const setPassword = async (
+  data: SetPasswordRequest
+): Promise<SetPasswordResponse> => {
   const { password } = data;
-  
+
   // Validate required fields
   if (!password) {
-    throw new Error('Password is required');
+    throw new Error("Password is required");
   }
-  
+
   const response = await apiClient.put<SetPasswordResponse>(`/set-password`, {
     password,
   });
-  
+
   if (response.status === 200) {
     console.log("Password set successfully:", response.data);
-    
+
     // Check if response has token and userDetails properties (might be present but not in type)
     interface ExtendedPasswordResponse extends SetPasswordResponse {
       token?: string;
@@ -238,41 +250,46 @@ export const setPassword = async (data: SetPasswordRequest): Promise<SetPassword
     }
     const extendedResponse = response.data as ExtendedPasswordResponse;
     if (extendedResponse.token && extendedResponse.userDetails?._id) {
-      localStorage.setItem('token', extendedResponse.token);
-      localStorage.setItem('userId', extendedResponse.userDetails._id);
-      
+      localStorage.setItem("token", extendedResponse.token);
+      localStorage.setItem("userId", extendedResponse.userDetails._id);
+
       // Set socketToken if available
       if (extendedResponse.socketToken) {
-        localStorage.setItem('socketToken', extendedResponse.socketToken);
+        localStorage.setItem("socketToken", extendedResponse.socketToken);
       }
 
       if (extendedResponse.deviceId) {
-        localStorage.setItem('deviceId', extendedResponse.deviceId);
+        localStorage.setItem("deviceId", extendedResponse.deviceId);
       }
     }
-    
+
     return response.data;
   } else {
-    throw new Error(response.data.message || 'Failed to set password');
+    throw new Error(response.data.message || "Failed to set password");
   }
 };
 
 // Function to reset password
-export const resetPassword = async (resetData: { phoneNumber: string; countryCode: string; oldPassword: string; password: string }) => {
+export const resetPassword = async (resetData: {
+  phoneNumber: string;
+  countryCode: string;
+  oldPassword: string;
+  password: string;
+}) => {
   const { phoneNumber, countryCode, oldPassword, password } = resetData;
-  
+
   // Validate required fields
   if (!phoneNumber || !countryCode || !oldPassword || !password) {
-    throw new Error('All fields are required');
+    throw new Error("All fields are required");
   }
-  
+
   const response = await apiClient.post(`/reset-password`, {
     phoneNumber,
     countryCode,
     oldPassword,
-    password
+    password,
   });
-  
+
   return response.data;
 };
 
@@ -295,36 +312,38 @@ export const resetPasswordEmail = async (resetData: { email: string; oldPassword
 };
 
 // Function to execute forgot password
-export const forgotPassword = async (forgotData: { 
-  phoneNumber: string; 
-  countryCode: string; 
-  password: string 
+export const forgotPassword = async (forgotData: {
+  phoneNumber: string;
+  countryCode: string;
+  password: string;
 }): Promise<{ message: string; success: boolean }> => {
   const { phoneNumber, countryCode, password } = forgotData;
-  
+
   // Validate required fields
   if (!phoneNumber || !countryCode || !password) {
-    throw new Error('Phone number, country code, and new password are required');
+    throw new Error(
+      "Phone number, country code, and new password are required"
+    );
   }
-  
+
   // Create FormData
   const formData = new FormData();
-  formData.append('phoneNumber', phoneNumber);
-  formData.append('countryCode', countryCode);
-  formData.append('password', password);
-  
-  const response = await apiClient.post('/forgot-password', formData, {
+  formData.append("phoneNumber", phoneNumber);
+  formData.append("countryCode", countryCode);
+  formData.append("password", password);
+
+  const response = await apiClient.post("/forgot-password", formData, {
     headers: {
-      'Content-Type': 'multipart/form-data',
+      "Content-Type": "multipart/form-data",
       // 'Authorization': `Basic OG==`
     },
   });
-  
+
   if (response.status === 200) {
     console.log("Password reset successfully:", response.data);
     return response.data;
   } else {
-    throw new Error(response.data.message || 'Failed to reset password');
+    throw new Error(response.data.message || "Failed to reset password");
   }
 };
 
@@ -354,18 +373,20 @@ export const forgotPasswordEmail = async (forgotData: {
 };
 
 // Function to delete user account
-export const deleteAccount = async (password: string): Promise<{ message: string; success: boolean }> => {
+export const deleteAccount = async (
+  password: string
+): Promise<{ message: string; success: boolean }> => {
   // Validate required field
   if (!password) {
-    throw new Error('Password is required');
+    throw new Error("Password is required");
   }
-  
-  const response = await apiClient.post('/deleteAccount', { password });
-  
+
+  const response = await apiClient.post("/deleteAccount", { password });
+
   if (response.status === 200) {
     console.log("Account deleted successfully:", response.data);
     return response.data;
   } else {
-    throw new Error(response.data.message || 'Failed to delete account');
+    throw new Error(response.data.message || "Failed to delete account");
   }
 };

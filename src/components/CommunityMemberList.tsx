@@ -21,14 +21,16 @@ const CommunityMemberList = ({ memberIds, memberDetails }: CommunityMemberListPr
   useEffect(() => {
     // If memberDetails are provided, use them directly
     if (memberDetails && memberDetails.length > 0) {
-      // Format members, ensuring they all have at least default values
-      const formattedMembers = memberDetails.map(member => ({
-        _id: member._id,
-        name: member.name || "Anonymous User",
-        profilePic: member.profilePic || "",
-        avatar: member.avatar || "",
-        nickName: "Member",
-      }));
+      // Format members, filtering out members without names
+      const formattedMembers = memberDetails
+        .filter(member => member.name && member.name.trim() !== "")
+        .map(member => ({
+          _id: member._id,
+          name: member.name,
+          profilePic: member.profilePic || "",
+          avatar: member.avatar || "",
+          nickName: "Member",
+        }));
       
       setMembers(formattedMembers);
       setLoading(false);
@@ -49,10 +51,10 @@ const CommunityMemberList = ({ memberIds, memberDetails }: CommunityMemberListPr
         const memberChunks = memberIds.slice(0, 30); // Limit to 30 for performance
         const memberPromises = memberChunks.map(async (memberId) => {
           const response = await fetchProfile(memberId);
-          if (response.success && response.data) {
+          if (response.success && response.data && response.data.name && response.data.name.trim() !== "") {
             return {
               _id: memberId,
-              name: response.data.name || "Anonymous User",
+              name: response.data.name,
               profilePic: response.data.profilePic || "",
               avatar: response.data.avatar || "",
               bio: response.data.bio || "",
@@ -74,7 +76,7 @@ const CommunityMemberList = ({ memberIds, memberDetails }: CommunityMemberListPr
     };
 
     fetchMembers();
-  }, [memberIds, memberDetails]);
+  }, [memberIds, memberDetails, fetchProfile]);
 
   if (loading) {
     return (
@@ -115,11 +117,11 @@ const CommunityMemberList = ({ memberIds, memberDetails }: CommunityMemberListPr
           <Avatar className="h-10 w-10 bg-purple-900/40 border-2 border-purple-500/30">
             <AvatarImage src={member.profilePic || member.avatar} alt={member.name} />
             <AvatarFallback className="bg-purple-900/50 text-white">
-              {member.name ? member.name.charAt(0).toUpperCase() : "U"}
+              {member.name.charAt(0).toUpperCase()}
             </AvatarFallback>
           </Avatar>
           <div className="flex flex-col">
-            <span className="font-medium text-foreground">{member.name || "Anonymous User"}</span>
+            <span className="font-medium text-foreground">{member.name}</span>
             <span className="text-xs text-muted-foreground">
               {member.nickName || "Member"}
             </span>
